@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { ConnectButton, useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
 import { createThirdwebClient } from 'thirdweb';
 import { createWallet, inAppWallet } from 'thirdweb/wallets';
-import { ARC_CHAIN_ID, TOKEN_SYMBOL, TOKEN_DECIMALS } from '@/lib/constants';
-import { getTokenContract, formatTokenAmount } from '@/lib/blockchain';
+import { SUPPORTED_CHAINS, TOKEN_SYMBOL } from '@/lib/constants';
 import { shortenAddress } from '@/lib/wallet';
 import { ARC_TESTNET } from '@/lib/chains';
+import { useUnifiedBalance } from '@/hooks/useUnifiedBalance';
 
 const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID;
 
@@ -21,8 +21,7 @@ const wallets = [
 export default function ConnectWallet() {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
-  const [usdcBalance, setUsdcBalance] = useState<string | null>(null);
-  const [loadingBalance, setLoadingBalance] = useState(false);
+  const { balance: unifiedBalance, loading: loadingBalance } = useUnifiedBalance();
 
   const client = useMemo(() => {
     if (!clientId) {
@@ -32,40 +31,6 @@ export default function ConnectWallet() {
       clientId: clientId,
     });
   }, [clientId]);
-
-  // Fetch USDC balance on Arc when account is connected
-  useEffect(() => {
-    const fetchBalance = async () => {
-      if (!account?.address) {
-        setUsdcBalance(null);
-        return;
-      }
-
-      // Only fetch balance if on Arc chain
-      if (chain?.id !== ARC_CHAIN_ID) {
-        setUsdcBalance(null);
-        return;
-      }
-
-      try {
-        setLoadingBalance(true);
-        const contract = getTokenContract(ARC_CHAIN_ID);
-        const balance = await contract.balanceOf(account.address);
-        const formatted = formatTokenAmount(balance, TOKEN_DECIMALS);
-        setUsdcBalance(formatted);
-      } catch (error) {
-        console.error('Error fetching USDC balance:', error);
-        setUsdcBalance(null);
-      } finally {
-        setLoadingBalance(false);
-      }
-    };
-
-    fetchBalance();
-    // Refresh balance every 10 seconds
-    const interval = setInterval(fetchBalance, 10000);
-    return () => clearInterval(interval);
-  }, [account?.address, chain?.id]);
 
   if (!client) {
     return (
@@ -101,12 +66,25 @@ export default function ConnectWallet() {
               <div className="connect-wallet-address">
                 {shortenAddress(account.address)}
               </div>
-              {usdcBalance !== null && chain?.id === ARC_CHAIN_ID && (
+              {unifiedBalance && (
                 <div className="connect-wallet-usdc-balance">
-                  {parseFloat(usdcBalance).toFixed(2)} {TOKEN_SYMBOL}
+                  {loadingBalance ? (
+                    <span className="text-xs text-gray-500">Loading...</span>
+                  ) : (
+                    <>
+                      <span className="font-semibold">
+                        {parseFloat(unifiedBalance.total).toFixed(2)} {TOKEN_SYMBOL}
+                      </span>
+                      {unifiedBalance.byChain.length > 1 && (
+                        <span className="text-xs text-gray-500 ml-1">
+                          (across {unifiedBalance.byChain.length} chains)
+                        </span>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
-              {chain?.id !== ARC_CHAIN_ID && (
+              {chain?.id !== SUPPORTED_CHAINS.ARC_TESTNET && (
                 <div className="connect-wallet-chain-warning text-xs text-yellow-600">
                   Switch to Arc Network Testnet
                 </div>

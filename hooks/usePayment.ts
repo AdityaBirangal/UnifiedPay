@@ -6,8 +6,9 @@ import { prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
 import { getContract } from 'thirdweb/contract';
 import { getUSDCAddress, parseTokenAmount } from '@/lib/blockchain';
 import { getThirdwebClient } from '@/lib/thirdweb-client';
-import { PRIMARY_CHAIN_ID, ARC_CHAIN_ID, TOKEN_DECIMALS } from '@/lib/constants';
+import { PRIMARY_CHAIN_ID, SUPPORTED_CHAINS, TOKEN_DECIMALS } from '@/lib/constants';
 import { ARC_TESTNET } from '@/lib/chains';
+import { useUnifiedBalance } from './useUnifiedBalance';
 
 interface PaymentParams {
   itemId: string;
@@ -20,6 +21,7 @@ interface PaymentParams {
 export function usePayment() {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
+  const { balance: unifiedBalance } = useUnifiedBalance();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,11 +40,23 @@ export function usePayment() {
     }
 
     // Check if chain is correct (Arc is now the primary chain)
-    if (!chain || chain.id !== ARC_CHAIN_ID) {
-      const err = new Error(`Please switch to Arc Testnet (Chain ID: ${ARC_CHAIN_ID})`);
+    if (!chain || chain.id !== SUPPORTED_CHAINS.ARC_TESTNET) {
+      const err = new Error(`Please switch to Arc Network Testnet (Chain ID: ${SUPPORTED_CHAINS.ARC_TESTNET})`);
       setError(err.message);
       onError?.(err);
       return null;
+    }
+
+    // Check unified balance (informational - actual check happens on-chain)
+    if (unifiedBalance) {
+      const totalBalance = parseFloat(unifiedBalance.total);
+      const paymentAmount = parseFloat(amount);
+      
+      if (totalBalance < paymentAmount) {
+        // Warning: User might not have sufficient balance
+        // But we still allow the payment attempt (on-chain will reject if insufficient)
+        console.warn(`Unified balance (${totalBalance} USDC) is less than payment amount (${paymentAmount} USDC)`);
+      }
     }
 
     setLoading(true);
@@ -50,7 +64,7 @@ export function usePayment() {
 
     try {
       const client = getThirdwebClient();
-      const tokenAddress = getUSDCAddress(ARC_CHAIN_ID);
+      const tokenAddress = getUSDCAddress(SUPPORTED_CHAINS.ARC_TESTNET);
 
       // Parse amount to smallest unit (USDC uses 6 decimals, not 18)
       const amountWei = parseTokenAmount(amount, TOKEN_DECIMALS);
@@ -123,6 +137,6 @@ export function usePayment() {
     loading,
     error,
     isConnected: !!account,
-    isCorrectChain: chain?.id === ARC_CHAIN_ID,
+    isCorrectChain: chain?.id === SUPPORTED_CHAINS.ARC_TESTNET,
   };
 }

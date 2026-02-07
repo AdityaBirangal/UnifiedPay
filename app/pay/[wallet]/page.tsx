@@ -9,7 +9,8 @@ import ConnectWallet from '@/components/wallet/ConnectWallet';
 import { useActiveAccount } from 'thirdweb/react';
 import { shortenAddress } from '@/lib/wallet';
 import { usePayment } from '@/hooks/usePayment';
-import { ARC_CHAIN_ID, ARCSCAN_URL, TOKEN_SYMBOL } from '@/lib/constants';
+import { useUnifiedBalance } from '@/hooks/useUnifiedBalance';
+import { SUPPORTED_CHAINS, ARCSCAN_URL, TOKEN_SYMBOL } from '@/lib/constants';
 import { useToast } from '@/components/ui/ToastProvider';
 import Skeleton from '@/components/ui/Skeleton';
 
@@ -44,6 +45,7 @@ export default function PublicPaymentPage() {
   const walletAddress = params.wallet as string;
   const account = useActiveAccount();
   const { executePayment, loading: paymentLoading, error: paymentError, isCorrectChain } = usePayment();
+  const { balance: unifiedBalance, loading: balanceLoading } = useUnifiedBalance();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PublicPagesData | null>(null);
@@ -98,7 +100,7 @@ export default function PublicPaymentPage() {
     }
 
     if (!isCorrectChain) {
-      showToast(`Please switch to Arc Network Testnet (Chain ID: ${ARC_CHAIN_ID})`, 'error');
+      showToast(`Please switch to Arc Network Testnet (Chain ID: ${SUPPORTED_CHAINS.ARC_TESTNET})`, 'error');
       return;
     }
 
@@ -418,6 +420,71 @@ export default function PublicPaymentPage() {
                         {shortenAddress(data.creator.walletAddress)}
                       </p>
                     </div>
+
+                    {/* Unified Balance Display */}
+                    {account && unifiedBalance && (
+                      <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                        <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-2">Your USDC Balance</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                            {parseFloat(unifiedBalance.total).toFixed(2)} {TOKEN_SYMBOL}
+                          </p>
+                          {unifiedBalance.byChain.length > 1 && (
+                            <p className="text-xs text-blue-600 dark:text-blue-400">
+                              across {unifiedBalance.byChain.length} chains
+                            </p>
+                          )}
+                        </div>
+                        {unifiedBalance.byChain.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">By Chain:</p>
+                            <div className="space-y-1">
+                              {unifiedBalance.byChain.map((chain) => (
+                                <div key={chain.chainId} className="flex justify-between text-xs">
+                                  <span className="text-blue-700 dark:text-blue-300">{chain.chainName}:</span>
+                                  <span className="font-semibold text-blue-900 dark:text-blue-100">
+                                    {parseFloat(chain.balance).toFixed(2)} {TOKEN_SYMBOL}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {selectedItem && (
+                          <div className="mt-3 pt-2 border-t border-blue-200 dark:border-blue-700">
+                            {(() => {
+                              const paymentAmount = parseFloat(
+                                selectedItem.type === 'fixed' 
+                                  ? selectedItem.priceUsdc || '0'
+                                  : customAmount || '0'
+                              );
+                              const totalBalance = parseFloat(unifiedBalance.total);
+                              const hasEnough = totalBalance >= paymentAmount;
+                              
+                              return (
+                                <div className={`flex items-center gap-2 text-xs ${hasEnough ? 'text-green-700 dark:text-green-300' : 'text-yellow-700 dark:text-yellow-300'}`}>
+                                  {hasEnough ? (
+                                    <>
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      <span>Sufficient balance</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                      </svg>
+                                      <span>Insufficient balance on Arc. Bridge USDC to Arc to complete payment.</span>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Status Messages */}
                     {paymentStatus === 'success' ? (

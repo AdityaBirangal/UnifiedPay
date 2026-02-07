@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import { getProvider, getTokenContract, getUSDCAddress, formatTokenAmount } from './blockchain';
 import { normalizeAddress } from './wallet';
 import { getCachedVerification, setCachedVerification } from './verification-cache';
-import { ARC_CHAIN_ID, PRIMARY_CHAIN_ID, TOKEN_DECIMALS } from './constants';
+import { PRIMARY_CHAIN_ID, TOKEN_DECIMALS } from './constants';
 
 interface PaymentVerification {
   isValid: boolean;

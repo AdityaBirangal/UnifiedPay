@@ -4,10 +4,12 @@ import { defineChain } from 'thirdweb/chains';
  * Arc Testnet Configuration
  * Arc is an EVM-compatible chain optimized for USDC
  */
+import { SUPPORTED_CHAINS } from './constants';
+
 export const ARC_TESTNET = defineChain({
-  id: parseInt(process.env.NEXT_PUBLIC_ARC_CHAIN_ID || '5042002', 10),
+  id: SUPPORTED_CHAINS.ARC_TESTNET,
   name: 'Arc Testnet',
-  rpc: process.env.NEXT_PUBLIC_ARC_RPC_URL || 'https://rpc.testnet.arc.network',
+  rpc: process.env.NEXT_PUBLIC_RPC_URL_ARC_TESTNET || 'https://rpc.testnet.arc.network',
   nativeCurrency: {
     name: 'Ether',
     symbol: 'ETH',
@@ -22,12 +24,12 @@ export const ARC_TESTNET = defineChain({
 });
 
 /**
- * Ethereum Mainnet (for backwards compatibility and multi-chain support)
+ * Ethereum Sepolia Testnet
  */
-export const ETHEREUM_MAINNET = defineChain({
-  id: 1,
-  name: 'Ethereum',
-  rpc: process.env.NEXT_PUBLIC_ETHEREUM_RPC_URL || 'https://eth-mainnet.g.alchemy.com/v2/demo',
+export const ETHEREUM_SEPOLIA = defineChain({
+  id: 11155111,
+  name: 'Ethereum Sepolia',
+  rpc: process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA || 'https://eth-sepolia.g.alchemy.com/v2/demo',
   nativeCurrency: {
     name: 'Ether',
     symbol: 'ETH',
@@ -36,18 +38,18 @@ export const ETHEREUM_MAINNET = defineChain({
   blockExplorers: [
     {
       name: 'Etherscan',
-      url: 'https://etherscan.io',
+      url: 'https://sepolia.etherscan.io',
     },
   ],
 });
 
 /**
- * Polygon Mainnet (for multi-chain support)
+ * Polygon Amoy Testnet
  */
-export const POLYGON_MAINNET = defineChain({
-  id: 137,
-  name: 'Polygon',
-  rpc: process.env.NEXT_PUBLIC_POLYGON_RPC_URL || 'https://polygon-rpc.com',
+export const POLYGON_AMOY = defineChain({
+  id: 80002,
+  name: 'Polygon Amoy',
+  rpc: process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY || 'https://polygon-amoy.g.alchemy.com/v2/demo',
   nativeCurrency: {
     name: 'MATIC',
     symbol: 'MATIC',
@@ -56,18 +58,18 @@ export const POLYGON_MAINNET = defineChain({
   blockExplorers: [
     {
       name: 'Polygonscan',
-      url: 'https://polygonscan.com',
+      url: 'https://amoy.polygonscan.com',
     },
   ],
 });
 
 /**
- * Avalanche Mainnet (for multi-chain support)
+ * Avalanche Fuji Testnet
  */
-export const AVALANCHE_MAINNET = defineChain({
-  id: 43114,
-  name: 'Avalanche',
-  rpc: process.env.NEXT_PUBLIC_AVALANCHE_RPC_URL || 'https://api.avax.network/ext/bc/C/rpc',
+export const AVALANCHE_FUJI = defineChain({
+  id: 43113,
+  name: 'Avalanche Fuji',
+  rpc: process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI || 'https://avax-fuji.g.alchemy.com/v2/demo',
   nativeCurrency: {
     name: 'Avalanche',
     symbol: 'AVAX',
@@ -76,7 +78,27 @@ export const AVALANCHE_MAINNET = defineChain({
   blockExplorers: [
     {
       name: 'Snowtrace',
-      url: 'https://snowtrace.io',
+      url: 'https://testnet.snowtrace.io',
+    },
+  ],
+});
+
+/**
+ * Base Sepolia Testnet
+ */
+export const BASE_SEPOLIA = defineChain({
+  id: 84532,
+  name: 'Base Sepolia',
+  rpc: process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA || 'https://base-sepolia.g.alchemy.com/v2/demo',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  blockExplorers: [
+    {
+      name: 'Basescan',
+      url: 'https://sepolia.basescan.org',
     },
   ],
 });
@@ -88,12 +110,14 @@ export function getChainById(chainId: number) {
   switch (chainId) {
     case ARC_TESTNET.id:
       return ARC_TESTNET;
-    case ETHEREUM_MAINNET.id:
-      return ETHEREUM_MAINNET;
-    case POLYGON_MAINNET.id:
-      return POLYGON_MAINNET;
-    case AVALANCHE_MAINNET.id:
-      return AVALANCHE_MAINNET;
+    case ETHEREUM_SEPOLIA.id:
+      return ETHEREUM_SEPOLIA;
+    case POLYGON_AMOY.id:
+      return POLYGON_AMOY;
+    case AVALANCHE_FUJI.id:
+      return AVALANCHE_FUJI;
+    case BASE_SEPOLIA.id:
+      return BASE_SEPOLIA;
     default:
       return ARC_TESTNET; // Default to Arc
   }
@@ -103,7 +127,7 @@ export function getChainById(chainId: number) {
  * Get all supported chains
  */
 export function getSupportedChains() {
-  return [ARC_TESTNET, ETHEREUM_MAINNET, POLYGON_MAINNET, AVALANCHE_MAINNET];
+  return [ARC_TESTNET, ETHEREUM_SEPOLIA, POLYGON_AMOY, AVALANCHE_FUJI, BASE_SEPOLIA];
 }
 
 /**
