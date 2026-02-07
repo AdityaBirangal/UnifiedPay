@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  walletAddress String   @id // Ethereum address format
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  paymentPages PaymentPage[]
+
+  @@map("unifiedpay_users")
+}
+
+model PaymentPage {
+  id            String   @id @default(uuid())
+  creatorWallet String
+  title         String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  creator User        @relation(fields: [creatorWallet], references: [walletAddress], onDelete: Cascade)
+  items   PaymentItem[]
+
+  @@index([creatorWallet])
+  @@map("unifiedpay_payment_pages")
+}
+
+model PaymentItem {
+  id          String   @id @default(uuid())
+  pageId      String
+  title       String
+  description String?
+  type        String   // "fixed" | "open"
+  priceUsdc   String?  // USDC price amount (6 decimals) - DB field name kept for backwards compatibility
+  contentUrl  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  page     PaymentPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([pageId])
+  @@map("unifiedpay_payment_items")
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  itemId      String
+  payerWallet String
+  amount      String   // Store as string to handle large numbers
+  txHash      String   @unique // Transaction hash
+  createdAt   DateTime @default(now())
+
+  // Relations
+  item PaymentItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([payerWallet])
+  @@index([txHash])
+  @@map("unifiedpay_payments")
+}

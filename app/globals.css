@@ -1,0 +1,335 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom animations for header and navigation */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+.slide-in-from-top-2 {
+  animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Connect Wallet Container */
+.connect-wallet-container {
+  display: flex;
+  align-items: center;
+}
+
+.connect-wallet-button-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Custom content inside button when connected */
+.connect-wallet-custom-content {
+  position: absolute;
+  left: 0.875rem;
+  right: 0.875rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Container for address and balance */
+.connect-wallet-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Circle icon */
+.connect-wallet-icon-circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(to right, #2563eb, #3b82f6);
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .connect-wallet-icon-circle {
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Address */
+.connect-wallet-address {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(37, 99, 235);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.dark .connect-wallet-address {
+  color: rgb(191, 219, 254);
+}
+
+/* USDC Balance */
+.connect-wallet-usda-balance {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(37, 99, 235, 0.7);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.dark .connect-wallet-usda-balance {
+  color: rgba(191, 219, 254, 0.7);
+}
+
+/* Connect Wallet Button Styling */
+.connect-wallet-container button {
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+  min-height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  border: none !important;
+}
+
+.connect-wallet-container button:active {
+  transform: scale(0.95) !important;
+}
+
+/* When wallet is NOT connected - style as primary button */
+.connect-wallet-not-connected button {
+  background: linear-gradient(to right, #2563eb, #3b82f6) !important;
+  color: white !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.connect-wallet-not-connected button:hover {
+  background: linear-gradient(to right, #1d4ed8, #2563eb) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* When wallet IS connected - style like WalletInfo button */
+.connect-wallet-connected button {
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(59, 130, 246, 0.1)) !important;
+  border: 1px solid rgba(37, 99, 235, 0.5) !important;
+  border-radius: 0.75rem !important;
+  padding: 0.5rem 0.875rem !important;
+  color: rgb(37, 99, 235) !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  transition: all 0.2s !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  position: relative !important;
+  min-height: 40px !important;
+  min-width: 200px !important;
+}
+
+/* Hide all default content when we have custom content */
+.connect-wallet-connected .connect-wallet-button-wrapper button > * {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+.dark .connect-wallet-connected button {
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.2)) !important;
+  border-color: rgba(37, 99, 235, 0.5) !important;
+  color: rgb(253, 230, 138) !important;
+}
+
+.connect-wallet-connected button:hover {
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.15), rgba(59, 130, 246, 0.15)) !important;
+  border-color: rgba(37, 99, 235, 0.7) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .connect-wallet-connected button:hover {
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.3), rgba(59, 130, 246, 0.3)) !important;
+  border-color: rgba(37, 99, 235, 0.6) !important;
+}
+
+/* Hide ETH balance and chain name - we show USDC instead */
+.connect-wallet-connected button *[class*="balance"],
+.connect-wallet-connected button *[class*="Balance"],
+.connect-wallet-connected button *[class*="chain"],
+.connect-wallet-connected button *[class*="Chain"] {
+  display: none !important;
+}
+
+/* Hide the last child div/span which typically contains ETH balance */
+.connect-wallet-connected button > div:last-child,
+.connect-wallet-connected button > span:last-child {
+  display: none !important;
+}
+
+/* Hide nested elements that might show ETH */
+.connect-wallet-connected button > div > div:last-child,
+.connect-wallet-connected button > div > span:last-child {
+  display: none !important;
+}
+
+/* Style the address text inside the button */
+.connect-wallet-connected button span,
+.connect-wallet-connected button div {
+  color: inherit !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
+
+/* USDC Balance Display */
+.connect-wallet-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0.5rem 0.875rem;
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid rgba(37, 99, 235, 0.5);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+}
+
+.dark .connect-wallet-balance {
+  background: linear-gradient(to right, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.2));
+  border-color: rgba(37, 99, 235, 0.5);
+}
+
+.connect-wallet-balance .balance-amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(37, 99, 235);
+  line-height: 1.2;
+}
+
+.dark .connect-wallet-balance .balance-amount {
+  color: rgb(191, 219, 254);
+}
+
+.connect-wallet-balance .balance-symbol {
+  font-size: 0.6875rem;
+  color: rgba(37, 99, 235, 0.7);
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.dark .connect-wallet-balance .balance-symbol {
+  color: rgba(191, 219, 254, 0.7);
+}
