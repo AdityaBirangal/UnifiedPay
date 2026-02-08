@@ -72,34 +72,43 @@ export function useUnifiedBalance() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isFirstFetchRef = useRef(true);
 
   useEffect(() => {
-    const fetchBalance = async () => {
+    const fetchBalance = async (isInitial = false) => {
       if (!account?.address) {
         setBalance(null);
         setLoading(false);
+        isFirstFetchRef.current = true;
         return;
       }
 
-      setLoading(true);
+      // Only show loading state on first fetch or if we have no balance
+      if (isFirstFetchRef.current || balance === null) {
+        setLoading(true);
+      }
       setError(null);
 
       try {
         const result = await fetchBalanceForWallet(account.address);
         setBalance(result);
+        isFirstFetchRef.current = false;
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch balance');
-        setBalance(null);
+        // Don't clear existing balance on refresh errors
+        if (isFirstFetchRef.current) {
+          setBalance(null);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     // Initial fetch
-    fetchBalance();
+    fetchBalance(true);
     
-    // Refresh balance every 10 seconds
-    intervalRef.current = setInterval(fetchBalance, 10000);
+    // Refresh balance every 10 seconds (background refresh)
+    intervalRef.current = setInterval(() => fetchBalance(false), 10000);
     
     return () => {
       if (intervalRef.current) {

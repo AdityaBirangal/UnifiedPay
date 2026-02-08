@@ -130,13 +130,13 @@ body {
 /* Custom content inside button when connected */
 .connect-wallet-custom-content {
   position: absolute;
-  left: 0.875rem;
-  right: 0.875rem;
+  left: 0.75rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: 0.75rem;
   pointer-events: none;
   z-index: 10;
 }
@@ -146,49 +146,90 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.125rem;
+  justify-content: center;
+  gap: 0.25rem;
   flex: 1;
   min-width: 0;
 }
 
-/* Circle icon */
+/* Icon container - supports both placeholder and ENS avatar */
+.connect-wallet-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Circle icon placeholder */
 .connect-wallet-icon-circle {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: linear-gradient(to right, #2563eb, #3b82f6);
   flex-shrink: 0;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(37, 99, 235, 0.3);
 }
 
 .dark .connect-wallet-icon-circle {
-  border-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
-/* Address */
+/* Address - supports ENS names */
 .connect-wallet-address {
   font-size: 0.875rem;
   font-weight: 600;
   color: rgb(37, 99, 235);
-  white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
 }
 
 .dark .connect-wallet-address {
   color: rgb(191, 219, 254);
 }
 
+/* ENS name styling in header */
+.connect-wallet-address .font-bold {
+  font-weight: 700;
+}
+
+.connect-wallet-address .text-blue-600 {
+  color: rgb(37, 99, 235);
+}
+
+.dark .connect-wallet-address .text-blue-400 {
+  color: rgb(96, 165, 250);
+}
+
 /* USDC Balance */
+.connect-wallet-usdc-balance {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: rgba(37, 99, 235, 0.8);
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.dark .connect-wallet-usdc-balance {
+  color: rgba(191, 219, 254, 0.8);
+}
+
+/* Keep old class for backwards compatibility */
 .connect-wallet-usda-balance {
   font-size: 0.6875rem;
   font-weight: 500;
-  color: rgba(37, 99, 235, 0.7);
-  white-space: nowrap;
-  line-height: 1.2;
+  color: rgba(37, 99, 235, 0.8);
+  line-height: 1.3;
 }
 
 .dark .connect-wallet-usda-balance {
-  color: rgba(191, 219, 254, 0.7);
+  color: rgba(191, 219, 254, 0.8);
 }
 
 /* Connect Wallet Button Styling */

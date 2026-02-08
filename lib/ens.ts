@@ -39,6 +39,8 @@ export function getENSProvider(): ethers.JsonRpcProvider {
                      process.env.NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC ||
                      'https://eth-sepolia.g.alchemy.com/v2/demo';
   
+  console.log('[ENS] Using Sepolia RPC:', sepoliaRpc.substring(0, 50) + '...');
+  
   return new ethers.JsonRpcProvider(sepoliaRpc);
 }
 
@@ -73,8 +75,12 @@ export async function resolveENSName(ensName: string): Promise<string | null> {
   try {
     const provider = getENSProvider();
     
+    console.log(`[ENS] Resolving name: ${ensName}`);
+    
     // Explicit ENS resolution using ethers
     const address = await provider.resolveName(ensName);
+    
+    console.log(`[ENS] Resolved ${ensName} → ${address}`);
     
     // Cache the result
     addressCache.set(ensName, {
@@ -84,7 +90,7 @@ export async function resolveENSName(ensName: string): Promise<string | null> {
     
     return address;
   } catch (error) {
-    console.error(`ENS resolution failed for ${ensName}:`, error);
+    console.error(`[ENS] Resolution failed for ${ensName}:`, error);
     
     // Cache null result to avoid repeated failures
     addressCache.set(ensName, {
@@ -123,8 +129,12 @@ export async function lookupENSName(address: string): Promise<string | null> {
   try {
     const provider = getENSProvider();
     
+    console.log(`[ENS] Reverse lookup for address: ${address}`);
+    
     // Explicit ENS reverse lookup using ethers
     const name = await provider.lookupAddress(address);
+    
+    console.log(`[ENS] Reverse lookup ${address} → ${name || 'null (no primary name set)'}`);
     
     // Cache the result
     nameCache.set(address, {
@@ -134,7 +144,7 @@ export async function lookupENSName(address: string): Promise<string | null> {
     
     return name;
   } catch (error) {
-    console.error(`ENS reverse lookup failed for ${address}:`, error);
+    console.error(`[ENS] Reverse lookup failed for ${address}:`, error);
     
     // Cache null result
     nameCache.set(address, {
