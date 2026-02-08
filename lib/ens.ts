@@ -188,10 +188,8 @@ export async function getENSAvatar(ensName: string): Promise<string | null> {
     }
     
     // Get avatar text record using ENS resolver
-    const avatar = await resolver.getAvatar();
-    
-    // avatar can be an Avatar object or null
-    const avatarUrl = avatar?.url || null;
+    // avatar is a string URL or null
+    const avatarUrl = await resolver.getAvatar();
     
     // Cache the result
     avatarCache.set(ensName, {

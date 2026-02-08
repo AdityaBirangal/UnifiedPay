@@ -65,7 +65,7 @@ export default function WalletInfo() {
               className="w-3 h-3 text-green-500 dark:text-green-400 flex-shrink-0"
               fill="currentColor"
               viewBox="0 0 20 20"
-              title="ENS Verified"
+              aria-label="ENS Verified"
             >
               <path
                 fillRule="evenodd"
