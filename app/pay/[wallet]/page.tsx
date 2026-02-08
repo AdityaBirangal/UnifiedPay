@@ -59,12 +59,14 @@ export default function PublicPaymentPage() {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [ensResolutionError, setEnsResolutionError] = useState<string | null>(null);
+  const [originalENSName, setOriginalENSName] = useState<string | null>(null);
 
   // ENS Resolution: Convert ENS name to address if needed
   useEffect(() => {
     const resolveWalletParam = async () => {
       if (!walletParamRaw) {
         setWalletAddress(null);
+        setOriginalENSName(null);
         setLoading(false);
         return;
       }
@@ -80,6 +82,7 @@ export default function PublicPaymentPage() {
           
           if (resolvedAddress) {
             setWalletAddress(resolvedAddress);
+            setOriginalENSName(walletParamRaw); // Preserve the original ENS name
           } else {
             setEnsResolutionError(`Could not resolve ENS name: ${walletParamRaw}`);
             setLoading(false);
@@ -92,6 +95,7 @@ export default function PublicPaymentPage() {
       } else {
         // It's a regular address
         setWalletAddress(walletParamRaw);
+        setOriginalENSName(null);
       }
     };
 
@@ -264,6 +268,7 @@ export default function PublicPaymentPage() {
               <ENSAddressLarge 
                 address={data.creator.walletAddress}
                 showAvatar={true}
+                ensNameOverride={originalENSName}
               />
             </div>
           </div>

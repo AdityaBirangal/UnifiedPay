@@ -8,6 +8,7 @@ import { formatTokenAmount } from '@/lib/blockchain';
 import { shortenAddress } from '@/lib/wallet';
 import { ARCSCAN_URL } from '@/lib/constants';
 import Link from 'next/link';
+import ENSAddress from '@/components/ens/ENSAddress';
 
 interface Purchase {
   id: string;
@@ -158,8 +159,15 @@ export default function PurchasesPage() {
                       </svg>
                     </div>
                   </div>
-                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">Wallet Address</p>
-                  <p className="text-sm font-mono text-purple-900 dark:text-purple-100 break-all">{data.walletAddress}</p>
+                  <p className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">Your Wallet</p>
+                  <div className="flex items-center justify-start min-w-0">
+                    {/* ENS Integration: Show ENS name or address */}
+                    <ENSAddress 
+                      address={data.walletAddress}
+                      showAvatar={true}
+                      copyable={true}
+                    />
+                  </div>
                 </div>
 
                 <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 hover:shadow-lg transition-all duration-200">
@@ -237,10 +245,14 @@ export default function PurchasesPage() {
                             <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            <span className="text-gray-500 dark:text-gray-400">Creator:</span>
-                            <span className="font-mono text-xs text-gray-700 dark:text-gray-300">
-                              {shortenAddress(purchase.page.creatorWallet)}
-                            </span>
+                            <span className="text-gray-500 dark:text-gray-400 text-sm">Creator:</span>
+                            {/* ENS Integration: Show ENS name or address */}
+                            <div className="min-w-0 flex-1">
+                              <ENSAddress 
+                                address={purchase.page.creatorWallet}
+                                showAvatar={true}
+                              />
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

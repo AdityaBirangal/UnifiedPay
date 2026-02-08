@@ -95,7 +95,7 @@ export default function ENSAddress({
         </span>
       )}
       
-      <span className={ensName ? 'font-semibold' : 'font-mono'}>
+      <span className={ensName ? 'font-bold text-base text-blue-600 dark:text-blue-400' : 'font-mono text-sm text-gray-600 dark:text-gray-400'}>
         {displayName}
       </span>
 
@@ -104,7 +104,7 @@ export default function ENSAddress({
           className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0"
           fill="currentColor"
           viewBox="0 0 20 20"
-          title="ENS Verified"
+          aria-label="ENS Verified"
         >
           <path
             fillRule="evenodd"
@@ -159,15 +159,23 @@ interface ENSAddressLargeProps {
   address: string;
   showAvatar?: boolean;
   className?: string;
+  ensNameOverride?: string | null; // Allow passing pre-resolved ENS name
 }
 
 export function ENSAddressLarge({
   address,
   showAvatar = true,
   className = '',
+  ensNameOverride = null,
 }: ENSAddressLargeProps) {
-  const { ensName, avatar, loading } = useENSProfile(address);
+  const { ensName: resolvedEnsName, avatar: resolvedAvatar, loading } = useENSProfile(address);
+  const { avatar: overrideAvatar } = useENSProfile(ensNameOverride || undefined);
   const [copied, setCopied] = useState(false);
+  
+  // Use override if provided, otherwise use resolved ENS name
+  const ensName = ensNameOverride || resolvedEnsName;
+  // Use override avatar if we have override name, otherwise use resolved avatar
+  const avatar = ensNameOverride ? overrideAvatar : resolvedAvatar;
 
   const handleCopy = async () => {
     try {
@@ -229,14 +237,14 @@ export function ENSAddressLarge({
         {ensName ? (
           <>
             <div className="flex items-center gap-2 justify-center">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {ensName}
               </h3>
               <svg
-                className="w-5 h-5 text-green-500 dark:text-green-400"
+                className="w-6 h-6 text-green-500 dark:text-green-400"
                 fill="currentColor"
                 viewBox="0 0 20 20"
-                title="ENS Verified"
+                aria-label="ENS Verified"
               >
                 <path
                   fillRule="evenodd"
