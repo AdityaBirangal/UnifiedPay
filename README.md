@@ -23,13 +23,32 @@ UnifiedPay is a non-custodial payment platform that enables creators, sellers, a
 - 🔓 **Automatic Content Unlocking** - Blockchain-verified access control
 - 📊 **Easy Analytics** - Track all payments and earnings in one dashboard
 - 🌍 **24/7 Available** - Your payment page is always online
+- 🌐 **ENS Integration** - Human-readable payment URLs with ENS names and avatars
 
 ## Tech Stack
 
 - **Frontend**: Next.js 16 (App Router), React 18, Tailwind CSS, thirdweb WalletConnect
 - **Backend**: Next.js API routes, Prisma ORM, PostgreSQL (Supabase)
 - **Blockchain**: Arc Network (primary), USDC stablecoin, ethers.js
+- **Identity**: ENS (Ethereum Name Service) for human-readable addresses
 - **Database**: PostgreSQL (Supabase)
+
+## 🌐 ENS Integration
+
+UnifiedPay integrates **ENS (Ethereum Name Service)** to provide human-readable identity across the platform:
+
+- **ENS Payment URLs**: Accept payments at `/pay/yourname.eth` instead of `/pay/0x...`
+- **ENS Names**: Display ENS names instead of hex addresses throughout the UI
+- **ENS Avatars**: Show profile pictures from ENS records
+- **Reverse Resolution**: Automatically show ENS names for transaction senders
+
+**For detailed ENS implementation documentation**, see [ENS_INTEGRATION.md](./ENS_INTEGRATION.md)
+
+**Demo**:
+```
+Before: https://unifiedpay.com/pay/0x1234567890abcdef...
+After:  https://unifiedpay.com/pay/creator.eth ✓
+```
 
 ## Getting Started
 

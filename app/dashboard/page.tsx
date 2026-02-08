@@ -11,6 +11,7 @@ import { shortenAddress } from '@/lib/wallet';
 import { ARCSCAN_URL } from '@/lib/constants';
 import Skeleton from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastProvider';
+import ENSAddress from '@/components/ens/ENSAddress';
 
 interface Analytics {
   success: boolean;
@@ -462,7 +463,9 @@ export default function DashboardPage() {
                                                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
-                                                    <span>From: {shortenAddress(payment.payerWallet)}</span>
+                                                    <span className="flex items-center gap-1">
+                                                      From: <ENSAddress address={payment.payerWallet} showAvatar={false} />
+                                                    </span>
                                                   </div>
                                                 </div>
                                                 <div className="text-right flex-shrink-0">

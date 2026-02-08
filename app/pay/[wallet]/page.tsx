@@ -13,6 +13,9 @@ import { useUnifiedBalance } from '@/hooks/useUnifiedBalance';
 import { SUPPORTED_CHAINS, ARCSCAN_URL, TOKEN_SYMBOL } from '@/lib/constants';
 import { useToast } from '@/components/ui/ToastProvider';
 import Skeleton from '@/components/ui/Skeleton';
+import { ENSAddressLarge } from '@/components/ens/ENSAddress';
+import ENSAddress from '@/components/ens/ENSAddress';
+import { resolveENSOrAddress, isENSName } from '@/lib/ens';
 
 interface PaymentItem {
   id: string;
@@ -42,7 +45,7 @@ interface PublicPagesData {
 export default function PublicPaymentPage() {
   const router = useRouter();
   const params = useParams();
-  const walletAddress = params.wallet as string;
+  const walletParamRaw = params.wallet as string;
   const account = useActiveAccount();
   const { executePayment, loading: paymentLoading, error: paymentError, isCorrectChain } = usePayment();
   const { balance: unifiedBalance, loading: balanceLoading } = useUnifiedBalance();
@@ -54,6 +57,46 @@ export default function PublicPaymentPage() {
   const [customAmount, setCustomAmount] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [txHash, setTxHash] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [ensResolutionError, setEnsResolutionError] = useState<string | null>(null);
+
+  // ENS Resolution: Convert ENS name to address if needed
+  useEffect(() => {
+    const resolveWalletParam = async () => {
+      if (!walletParamRaw) {
+        setWalletAddress(null);
+        setLoading(false);
+        return;
+      }
+
+      // Check if the parameter is an ENS name
+      if (isENSName(walletParamRaw)) {
+        try {
+          setLoading(true);
+          setEnsResolutionError(null);
+          
+          // Resolve ENS name to address
+          const resolvedAddress = await resolveENSOrAddress(walletParamRaw);
+          
+          if (resolvedAddress) {
+            setWalletAddress(resolvedAddress);
+          } else {
+            setEnsResolutionError(`Could not resolve ENS name: ${walletParamRaw}`);
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error('ENS resolution failed:', err);
+          setEnsResolutionError(`Failed to resolve ENS name: ${walletParamRaw}`);
+          setLoading(false);
+        }
+      } else {
+        // It's a regular address
+        setWalletAddress(walletParamRaw);
+      }
+    };
+
+    resolveWalletParam();
+  }, [walletParamRaw]);
 
   useEffect(() => {
     const fetchPages = async () => {
@@ -156,7 +199,7 @@ export default function PublicPaymentPage() {
     );
   }
 
-  if (error || !data) {
+  if (error || ensResolutionError || !data) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <Header />
@@ -167,8 +210,17 @@ export default function PublicPaymentPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">Payment Page Not Found</h1>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{error || 'This creator has not set up any payment pages yet.'}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+              {ensResolutionError ? 'ENS Resolution Failed' : 'Payment Page Not Found'}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {ensResolutionError || error || 'This creator has not set up any payment pages yet.'}
+            </p>
+            {ensResolutionError && (
+              <p className="text-sm text-gray-500 dark:text-gray-500 mb-6 font-mono">
+                Tried to resolve: {walletParamRaw}
+              </p>
+            )}
             <Link
               href="/"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-700 hover:to-blue-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
@@ -204,13 +256,15 @@ export default function PublicPaymentPage() {
             <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">
               UnifiedPay
             </h1>
-            <div className="flex flex-col items-center gap-2">
+            <div className="flex flex-col items-center gap-4">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Creator
               </p>
-              <p className="font-mono text-base md:text-lg text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 break-all max-w-2xl">
-                {data.creator.walletAddress}
-              </p>
+              {/* ENS Integration: Display ENS name with avatar if available */}
+              <ENSAddressLarge 
+                address={data.creator.walletAddress}
+                showAvatar={true}
+              />
             </div>
           </div>
 
@@ -415,10 +469,15 @@ export default function PublicPaymentPage() {
 
                     {/* Recipient Info */}
                     <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-200 dark:border-gray-600">
-                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Recipient Address</p>
-                      <p className="font-mono text-sm text-gray-900 dark:text-gray-100 break-all">
-                        {shortenAddress(data.creator.walletAddress)}
-                      </p>
+                      <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">Recipient</p>
+                      <div className="text-sm text-gray-900 dark:text-gray-100">
+                        {/* ENS Integration: Show ENS name or address */}
+                        <ENSAddress 
+                          address={data.creator.walletAddress}
+                          showAvatar={true}
+                          copyable={true}
+                        />
+                      </div>
                     </div>
 
                     {/* Unified Balance Display */}
