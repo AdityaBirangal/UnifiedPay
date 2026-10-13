@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { useToast } from '@/components/ui/ToastProvider';
+import { useNetwork } from '@/components/providers/NetworkProvider';
+import { ArcNetwork, NETWORKS } from '@/lib/constants';
 
 export default function NewPaymentPage() {
   const router = useRouter();
@@ -14,10 +16,17 @@ export default function NewPaymentPage() {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { network: selectedNetwork } = useNetwork();
+  const [network, setNetwork] = useState<ArcNetwork>(selectedNetwork);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
   });
+
+  // Default to the network chosen in the header
+  useEffect(() => {
+    setNetwork(selectedNetwork);
+  }, [selectedNetwork]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +43,7 @@ export default function NewPaymentPage() {
           walletAddress,
           title: formData.title,
           description: formData.description,
+          chainId: NETWORKS[network].arcChainId,
         }),
       });
 
@@ -115,6 +125,44 @@ export default function NewPaymentPage() {
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">Optional: Add details about what customers receive</p>
               </div>
+
+              <fieldset>
+                <legend className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Network *
+                </legend>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(['mainnet', 'testnet'] as ArcNetwork[]).map((option) => (
+                    <label
+                      key={option}
+                      className={`flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-colors ${
+                        network === option
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="network"
+                        value={option}
+                        checked={network === option}
+                        onChange={() => setNetwork(option)}
+                        className="mt-1"
+                      />
+                      <span>
+                        <span className="block font-semibold text-gray-900 dark:text-gray-100">
+                          {NETWORKS[option].arcChainName}
+                        </span>
+                        <span className="block text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          {option === 'mainnet' ? 'Real USDC payments' : 'Test USDC for demos and trials'}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5">
+                  This page will only accept payments on the selected network. It can&apos;t be changed later.
+                </p>
+              </fieldset>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button

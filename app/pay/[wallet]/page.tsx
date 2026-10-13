@@ -10,7 +10,9 @@ import { useActiveAccount } from 'thirdweb/react';
 import { shortenAddress } from '@/lib/wallet';
 import { usePayment } from '@/hooks/usePayment';
 import { useUnifiedBalance } from '@/hooks/useUnifiedBalance';
-import { SUPPORTED_CHAINS, ARCSCAN_URL, TOKEN_SYMBOL } from '@/lib/constants';
+import { getExplorerTxUrl, getNetworkForArcChainId, TOKEN_SYMBOL } from '@/lib/constants';
+import NetworkBadge from '@/components/ui/NetworkBadge';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 import { useToast } from '@/components/ui/ToastProvider';
 import Skeleton from '@/components/ui/Skeleton';
 import { ENSAddressLarge } from '@/components/ens/ENSAddress';
@@ -24,12 +26,14 @@ interface PaymentItem {
   type: string;
   priceUsdc: string | null;
   contentUrl: string | null;
+  chainId: number; // Arc chain of the item's page
 }
 
 interface PaymentPage {
   id: string;
   title: string;
   description: string | null;
+  chainId: number;
   createdAt: string;
   items: PaymentItem[];
 }
@@ -47,7 +51,8 @@ export default function PublicPaymentPage() {
   const params = useParams();
   const walletParamRaw = params.wallet as string;
   const account = useActiveAccount();
-  const { executePayment, loading: paymentLoading, error: paymentError, isCorrectChain } = usePayment();
+  const { executePayment, loading: paymentLoading, error: paymentError, isCorrectChain, arcChain } = usePayment();
+  const { network, setNetwork } = useNetwork();
   const { balance: unifiedBalance, loading: balanceLoading } = useUnifiedBalance();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
@@ -78,7 +83,7 @@ export default function PublicPaymentPage() {
           setEnsResolutionError(null);
           
           // Resolve ENS name to address
-          const resolvedAddress = await resolveENSOrAddress(walletParamRaw);
+          const resolvedAddress = await resolveENSOrAddress(walletParamRaw, network);
           
           if (resolvedAddress) {
             setWalletAddress(resolvedAddress);
@@ -100,7 +105,7 @@ export default function PublicPaymentPage() {
     };
 
     resolveWalletParam();
-  }, [walletParamRaw]);
+  }, [walletParamRaw, network]);
 
   useEffect(() => {
     const fetchPages = async () => {
@@ -126,6 +131,11 @@ export default function PublicPaymentPage() {
   }, [walletAddress]);
 
   const handlePayClick = (item: PaymentItem) => {
+    // Follow the page's network so the wallet, balance and payment all use its chain
+    const itemNetwork = getNetworkForArcChainId(item.chainId);
+    if (itemNetwork !== network) {
+      setNetwork(itemNetwork);
+    }
     setSelectedItem(item);
     if (item.type === 'open') {
       setCustomAmount('');
@@ -147,7 +157,7 @@ export default function PublicPaymentPage() {
     }
 
     if (!isCorrectChain) {
-      showToast(`Please switch to Arc Network Testnet (Chain ID: ${SUPPORTED_CHAINS.ARC_TESTNET})`, 'error');
+      showToast(`Please switch to ${arcChain.name} (Chain ID: ${arcChain.id})`, 'error');
       return;
     }
 
@@ -166,6 +176,7 @@ export default function PublicPaymentPage() {
       itemId: selectedItem.id,
       recipientAddress: data.creator.walletAddress,
       amount: amount,
+      chainId: selectedItem.chainId,
       onSuccess: (txHash) => {
         setTxHash(txHash);
         setPaymentStatus('success');
@@ -280,7 +291,10 @@ export default function PublicPaymentPage() {
                 <div key={page.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                   {/* Page Header */}
                   <div className="bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-800/20 px-6 py-5 border-b border-blue-200 dark:border-blue-800">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">{page.title}</h2>
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{page.title}</h2>
+                      <NetworkBadge chainId={page.chainId} />
+                    </div>
                     {page.description && (
                       <p className="text-gray-700 dark:text-gray-300">{page.description}</p>
                     )}
@@ -566,7 +580,7 @@ export default function PublicPaymentPage() {
                         </div>
                         {txHash && (
                           <a
-                            href={`${ARCSCAN_URL}/tx/${txHash}`}
+                            href={getExplorerTxUrl(txHash, arcChain.id)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-mono break-all block"
@@ -600,7 +614,7 @@ export default function PublicPaymentPage() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                           </svg>
                           <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                            Please switch to Arc Network Testnet to make payments
+                            Please switch to {arcChain.name} to make payments
                           </p>
                         </div>
                       </div>

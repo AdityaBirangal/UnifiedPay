@@ -26,6 +26,7 @@ model PaymentPage {
   creatorWallet String
   title         String
   description   String?
+  chainId       Int      @default(5042002) // Arc chain this page accepts payments on (5042 mainnet, 5042002 testnet); existing pages are testnet
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -62,6 +63,7 @@ model Payment {
   payerWallet String
   amount      String   // Store as string to handle large numbers
   txHash      String   @unique // Transaction hash
+  chainId     Int      @default(5042002) // Arc chain the payment settled on (5042 mainnet, 5042002 testnet); existing rows are testnet
   createdAt   DateTime @default(now())
 
   // Relations
@@ -70,5 +72,6 @@ model Payment {
   @@index([itemId])
   @@index([payerWallet])
   @@index([txHash])
+  @@index([chainId])
   @@map("unifiedpay_payments")
 }

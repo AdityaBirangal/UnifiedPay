@@ -1,12 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ConnectButton, useActiveAccount, useActiveWalletChain } from 'thirdweb/react';
+import { ConnectButton, useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { createThirdwebClient } from 'thirdweb';
 import { createWallet, inAppWallet } from 'thirdweb/wallets';
-import { SUPPORTED_CHAINS, TOKEN_SYMBOL } from '@/lib/constants';
+import { TOKEN_SYMBOL } from '@/lib/constants';
 import { shortenAddress } from '@/lib/wallet';
-import { ARC_TESTNET } from '@/lib/chains';
+import { ARC_MAINNET, ARC_TESTNET } from '@/lib/chains';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 import { useUnifiedBalance } from '@/hooks/useUnifiedBalance';
 import { useENSProfile } from '@/hooks/useENS';
 
@@ -22,6 +23,8 @@ const wallets = [
 export default function ConnectWallet() {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
+  const switchChain = useSwitchActiveWalletChain();
+  const { arcChain } = useNetwork();
   const { balance: unifiedBalance, loading: loadingBalance } = useUnifiedBalance();
   
   // ENS Integration: Get ENS name and avatar for connected wallet
@@ -44,21 +47,14 @@ export default function ConnectWallet() {
     );
   }
 
-  if (!ARC_TESTNET) {
-    return (
-      <div className="px-4 py-2 text-sm text-red-600">
-        Arc RPC URL not configured
-      </div>
-    );
-  }
-
   return (
     <div className={`connect-wallet-container ${!account ? 'connect-wallet-not-connected' : 'connect-wallet-connected'}`}>
       <div className="connect-wallet-button-wrapper">
         <ConnectButton
           client={client}
           wallets={wallets}
-          chain={ARC_TESTNET}
+          chain={arcChain}
+          chains={[ARC_MAINNET, ARC_TESTNET]}
           connectModal={{ size: 'wide' }}
         />
         {account && (
@@ -129,10 +125,14 @@ export default function ConnectWallet() {
                   ) : null}
                 </div>
               )}
-              {chain?.id !== SUPPORTED_CHAINS.ARC_TESTNET && (
-                <div className="connect-wallet-chain-warning text-xs text-yellow-600 dark:text-yellow-500">
-                  Switch to Arc Network Testnet
-                </div>
+              {chain?.id !== arcChain.id && (
+                <button
+                  type="button"
+                  onClick={() => switchChain(arcChain).catch((err) => console.error('Failed to switch chain:', err))}
+                  className="connect-wallet-chain-warning text-xs text-yellow-600 dark:text-yellow-500 underline text-left"
+                >
+                  Switch to {arcChain.name}
+                </button>
               )}
             </div>
           </div>

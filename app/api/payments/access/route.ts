@@ -5,6 +5,7 @@ import { normalizeAddress, isValidAddress } from '@/lib/wallet';
 
 /**
  * GET /api/payments/access?wallet=0x...&itemId=...
+ * Only payments made on the page's Arc network count toward access
  * Check if a wallet has access to a payment item's content
  */
 export async function GET(request: NextRequest) {
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
         page: {
           select: {
             creatorWallet: true,
+            chainId: true,
           },
         },
         payments: {
@@ -71,8 +73,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Only payments on the page's network count (e.g. testnet USDC can't unlock a mainnet page)
+    const payments = item.payments.filter((payment) => payment.chainId === item.page.chainId);
+
     // Check if user has made any payments for this item
-    if (item.payments.length === 0) {
+    if (payments.length === 0) {
       return NextResponse.json({
         success: true,
         hasAccess: false,
@@ -86,7 +91,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the most recent payment
-    const latestPayment = item.payments[0];
+    const latestPayment = payments[0];
 
     // Skip blockchain verification if payment was recorded recently (within last 2 minutes)
     // This reduces RPC calls for fresh payments that were just recorded
@@ -95,7 +100,7 @@ export async function GET(request: NextRequest) {
 
     let verification;
     if (paymentAge < RECENT_PAYMENT_THRESHOLD) {
-      // Payment is recent, assume it's valid (it was just recorded after successful transaction)
+      // Payment is recent and was verified on-chain when it was recorded (POST /api/payments)
       verification = {
         isValid: true,
         txHash: latestPayment.txHash,
@@ -110,7 +115,8 @@ export async function GET(request: NextRequest) {
       verification = await verifyPayment(
         latestPayment.txHash,
         normalizeAddress(item.page.creatorWallet),
-        latestPayment.amount
+        latestPayment.amount,
+        latestPayment.chainId
       );
     }
 
@@ -121,6 +127,7 @@ export async function GET(request: NextRequest) {
         reason: 'Payment verification failed on blockchain',
         payment: {
           txHash: latestPayment.txHash,
+          chainId: latestPayment.chainId,
           amount: latestPayment.amount,
           createdAt: latestPayment.createdAt,
         },
@@ -142,6 +149,7 @@ export async function GET(request: NextRequest) {
       },
       payment: {
         txHash: latestPayment.txHash,
+        chainId: latestPayment.chainId,
         amount: latestPayment.amount,
         createdAt: latestPayment.createdAt,
       },

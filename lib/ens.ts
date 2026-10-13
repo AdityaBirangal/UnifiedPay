@@ -1,8 +1,10 @@
 import { ethers } from 'ethers';
+import { ArcNetwork, DEFAULT_NETWORK, NETWORKS } from './constants';
+import { getRpcUrl } from './blockchain';
 
 /**
  * ENS Resolution Utilities
- * Uses Ethereum Sepolia testnet for ENS lookups
+ * Uses Ethereum mainnet for ENS lookups (Sepolia when the Testnet network is selected)
  * 
  * Note: This is for ETHGlobal HackMoney - ENS prize category
  * All ENS resolution is done via explicit ethers ENS API calls
@@ -31,17 +33,27 @@ const avatarCache = new Map<string, ENSAvatarCacheEntry>();
 // Cache TTL: 5 minutes
 const CACHE_TTL = 5 * 60 * 1000;
 
+// Public fallback RPCs for ENS lookups when no RPC URL is configured
+const ENS_FALLBACK_RPC: Record<ArcNetwork, string> = {
+  mainnet: 'https://ethereum-rpc.publicnode.com',
+  testnet: 'https://ethereum-sepolia-rpc.publicnode.com',
+};
+
+const ensProviders = new Map<ArcNetwork, ethers.JsonRpcProvider>();
+
 /**
- * Get ENS provider (Sepolia testnet)
+ * Get ENS provider for the selected network (Ethereum mainnet or Sepolia)
  */
-export function getENSProvider(): ethers.JsonRpcProvider {
-  const sepoliaRpc = process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA || 
-                     process.env.NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC ||
-                     'https://eth-sepolia.g.alchemy.com/v2/demo';
-  
-  console.log('[ENS] Using Sepolia RPC:', sepoliaRpc.substring(0, 50) + '...');
-  
-  return new ethers.JsonRpcProvider(sepoliaRpc);
+export function getENSProvider(network: ArcNetwork = DEFAULT_NETWORK): ethers.JsonRpcProvider {
+  const existing = ensProviders.get(network);
+  if (existing) {
+    return existing;
+  }
+
+  const rpcUrl = getRpcUrl(NETWORKS[network].ensChainId) || ENS_FALLBACK_RPC[network];
+  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  ensProviders.set(network, provider);
+  return provider;
 }
 
 /**
@@ -61,19 +73,19 @@ export function isENSName(input: string): boolean {
  * @param ensName - ENS name (e.g., "vitalik.eth")
  * @returns Ethereum address or null if not found
  */
-export async function resolveENSName(ensName: string): Promise<string | null> {
+export async function resolveENSName(ensName: string, network: ArcNetwork = DEFAULT_NETWORK): Promise<string | null> {
   if (!ensName || !isENSName(ensName)) {
     return null;
   }
 
   // Check cache first
-  const cached = addressCache.get(ensName);
+  const cached = addressCache.get(`${network}:${ensName}`);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.address;
   }
 
   try {
-    const provider = getENSProvider();
+    const provider = getENSProvider(network);
     
     console.log(`[ENS] Resolving name: ${ensName}`);
     
@@ -83,7 +95,7 @@ export async function resolveENSName(ensName: string): Promise<string | null> {
     console.log(`[ENS] Resolved ${ensName} → ${address}`);
     
     // Cache the result
-    addressCache.set(ensName, {
+    addressCache.set(`${network}:${ensName}`, {
       address,
       timestamp: Date.now(),
     });
@@ -93,7 +105,7 @@ export async function resolveENSName(ensName: string): Promise<string | null> {
     console.error(`[ENS] Resolution failed for ${ensName}:`, error);
     
     // Cache null result to avoid repeated failures
-    addressCache.set(ensName, {
+    addressCache.set(`${network}:${ensName}`, {
       address: null,
       timestamp: Date.now(),
     });
@@ -108,7 +120,7 @@ export async function resolveENSName(ensName: string): Promise<string | null> {
  * @param address - Ethereum address (e.g., "0x1234...")
  * @returns ENS name or null if not found
  */
-export async function lookupENSName(address: string): Promise<string | null> {
+export async function lookupENSName(address: string, network: ArcNetwork = DEFAULT_NETWORK): Promise<string | null> {
   if (!address || !address.startsWith('0x')) {
     return null;
   }
@@ -121,13 +133,13 @@ export async function lookupENSName(address: string): Promise<string | null> {
   }
 
   // Check cache first
-  const cached = nameCache.get(address);
+  const cached = nameCache.get(`${network}:${address}`);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.name;
   }
 
   try {
-    const provider = getENSProvider();
+    const provider = getENSProvider(network);
     
     console.log(`[ENS] Reverse lookup for address: ${address}`);
     
@@ -137,7 +149,7 @@ export async function lookupENSName(address: string): Promise<string | null> {
     console.log(`[ENS] Reverse lookup ${address} → ${name || 'null (no primary name set)'}`);
     
     // Cache the result
-    nameCache.set(address, {
+    nameCache.set(`${network}:${address}`, {
       name,
       timestamp: Date.now(),
     });
@@ -147,7 +159,7 @@ export async function lookupENSName(address: string): Promise<string | null> {
     console.error(`[ENS] Reverse lookup failed for ${address}:`, error);
     
     // Cache null result
-    nameCache.set(address, {
+    nameCache.set(`${network}:${address}`, {
       name: null,
       timestamp: Date.now(),
     });
@@ -162,25 +174,25 @@ export async function lookupENSName(address: string): Promise<string | null> {
  * @param ensName - ENS name (e.g., "vitalik.eth")
  * @returns Avatar URL or null if not set
  */
-export async function getENSAvatar(ensName: string): Promise<string | null> {
+export async function getENSAvatar(ensName: string, network: ArcNetwork = DEFAULT_NETWORK): Promise<string | null> {
   if (!ensName || !isENSName(ensName)) {
     return null;
   }
 
   // Check cache first
-  const cached = avatarCache.get(ensName);
+  const cached = avatarCache.get(`${network}:${ensName}`);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.avatar;
   }
 
   try {
-    const provider = getENSProvider();
+    const provider = getENSProvider(network);
     
     // Get resolver for the ENS name
     const resolver = await provider.getResolver(ensName);
     
     if (!resolver) {
-      avatarCache.set(ensName, {
+      avatarCache.set(`${network}:${ensName}`, {
         avatar: null,
         timestamp: Date.now(),
       });
@@ -192,7 +204,7 @@ export async function getENSAvatar(ensName: string): Promise<string | null> {
     const avatarUrl = await resolver.getAvatar();
     
     // Cache the result
-    avatarCache.set(ensName, {
+    avatarCache.set(`${network}:${ensName}`, {
       avatar: avatarUrl,
       timestamp: Date.now(),
     });
@@ -202,7 +214,7 @@ export async function getENSAvatar(ensName: string): Promise<string | null> {
     console.error(`ENS avatar lookup failed for ${ensName}:`, error);
     
     // Cache null result
-    avatarCache.set(ensName, {
+    avatarCache.set(`${network}:${ensName}`, {
       avatar: null,
       timestamp: Date.now(),
     });
@@ -218,12 +230,12 @@ export async function getENSAvatar(ensName: string): Promise<string | null> {
  * @param input - ENS name or Ethereum address
  * @returns Normalized Ethereum address or null
  */
-export async function resolveENSOrAddress(input: string): Promise<string | null> {
+export async function resolveENSOrAddress(input: string, network: ArcNetwork = DEFAULT_NETWORK): Promise<string | null> {
   if (!input) return null;
   
   // If it looks like an ENS name, resolve it
   if (isENSName(input)) {
-    return await resolveENSName(input);
+    return await resolveENSName(input, network);
   }
   
   // If it's an address, normalize and return it

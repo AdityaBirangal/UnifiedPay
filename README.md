@@ -111,6 +111,27 @@ Code reference: `lib/circle-gateway.ts`
 
 ---
 
+## 🌐 Arc Mainnet & Testnet
+
+UnifiedPay runs on **Arc Mainnet by default**. A **Mainnet / Testnet** switch in the header moves the whole app to Arc Testnet (test USDC from [faucet.circle.com](https://faucet.circle.com)). The choice is saved in the browser.
+
+| | Arc Mainnet | Arc Testnet |
+|---|---|---|
+| Chain ID | `5042` | `5042002` |
+| RPC | `https://rpc.mainnet.arc.io` | `https://rpc.testnet.arc.io` |
+| Explorer | [explorer.arc.io](https://explorer.arc.io) | [explorer.testnet.arc.io](https://explorer.testnet.arc.io) |
+| USDC (ERC-20, 6 decimals) | `0x3600000000000000000000000000000000000000` | `0x3600000000000000000000000000000000000000` |
+
+- **Each payment page is locked to one network.** Creators pick Arc Mainnet or Arc Testnet when creating a page; it only accepts payments on that chain, and only payments on that chain unlock its content (test USDC can't unlock a mainnet page). Existing pages created before this change are on Testnet.
+- Buyers opening a page are switched to its network automatically.
+- Every payment stores the `chainId` it settled on and is always verified on that chain.
+- Dashboard and Purchases show only the selected network's payments, so mainnet and testnet totals never mix.
+- ENS and the unified balance follow the selected network (Ethereum, Polygon, Avalanche, Base mainnets vs. their testnets).
+
+Code reference: `lib/constants.ts` (`NETWORKS`), `lib/chains.ts`, `components/providers/NetworkProvider.tsx`
+
+---
+
 ## 🔗 ENS Integration
 
 **ENS provides human-readable payment identities.**
@@ -132,7 +153,7 @@ unifiedpay.com/pay/creator.eth ✓
 
 ✅ **Dynamic lookups** — No hardcoded addresses
 - All ENS resolution happens at runtime via ethers.js ENS API
-- Uses Ethereum Sepolia testnet for ENS lookups
+- Uses Ethereum mainnet for ENS lookups (Sepolia when Testnet is selected)
 
 ### Why This Matters
 
@@ -207,7 +228,7 @@ Code reference: `lib/ens.ts`
 - **Database**: PostgreSQL (Supabase) + Prisma ORM
 - **Payment Settlement**: Arc Network USDC contracts
 - **Balance Aggregation**: Circle Gateway REST API
-- **Identity Resolution**: ENS via ethers.js on Sepolia
+- **Identity Resolution**: ENS via ethers.js (Ethereum mainnet, or Sepolia on Testnet)
 
 ---
 
@@ -296,7 +317,7 @@ Code reference: `lib/ens.ts`
 ### Blockchain
 - **Arc Network** (settlement layer)
 - **Circle Gateway** (balance aggregation)
-- **ENS** (Ethereum Sepolia testnet)
+- **ENS** (Ethereum mainnet / Sepolia)
 - **ethers.js** (blockchain interaction)
 
 ### Database Schema
@@ -336,13 +357,15 @@ cp .env.example .env
 # Database
 DATABASE_URL="postgresql://..."
 
-# Arc Network
+# Arc Network (optional - defaults to Arc's public RPCs)
+NEXT_PUBLIC_RPC_URL_ARC_MAINNET="https://..."
 NEXT_PUBLIC_RPC_URL_ARC_TESTNET="https://..."
 
 # Circle Gateway (optional)
 CIRCLE_GATEWAY_API_KEY="your-api-key"
 
-# ENS (Ethereum Sepolia)
+# ENS (optional - defaults to public Ethereum RPCs)
+NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET="https://..."
 NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA="https://..."
 
 # thirdweb

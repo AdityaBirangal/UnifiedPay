@@ -11,6 +11,7 @@ interface User {
     id: string;
     title: string;
     description: string | null;
+    chainId: number;
     createdAt: string;
   }>;
 }

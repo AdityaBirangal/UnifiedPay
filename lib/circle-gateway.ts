@@ -7,6 +7,8 @@
  * Documentation: https://developers.circle.com/gateway
  */
 
+import { ArcNetwork, DEFAULT_NETWORK, NETWORKS, SUPPORTED_CHAINS, CHAIN_NAMES } from './constants';
+
 export interface UnifiedBalance {
   total: string; // Total USDC balance across all chains (human-readable)
   byChain: Array<{
@@ -20,6 +22,7 @@ export interface UnifiedBalance {
 export interface CircleGatewayConfig {
   apiKey: string;
   baseUrl?: string;
+  network?: ArcNetwork;
 }
 
 /**
@@ -33,7 +36,8 @@ export async function getUnifiedUSDCBalance(
   walletAddress: string,
   config: CircleGatewayConfig
 ): Promise<UnifiedBalance> {
-  const baseUrl = config.baseUrl || 'https://gateway-api-testnet.circle.com/v1';
+  const network = config.network || DEFAULT_NETWORK;
+  const baseUrl = config.baseUrl || NETWORKS[network].gatewayApiUrl;
   const apiKey = config.apiKey;
 
   if (!apiKey) {
@@ -169,7 +173,7 @@ function getChainInfoFromDomain(domain: number): { chainId: number; chainName: s
     14: { chainId: 0, chainName: 'World Chain' },
     16: { chainId: 0, chainName: 'Sei' },
     19: { chainId: 0, chainName: 'HyperEVM' },
-    26: { chainId: 0, chainName: 'Arc' },
+    26: { chainId: SUPPORTED_CHAINS.ARC_MAINNET, chainName: 'Arc' },
   };
 
   return domainMap[domain] || { chainId: domain, chainName: `Domain ${domain}` };
@@ -197,7 +201,7 @@ function formatUSDC(amount: bigint): string {
 /**
  * Get Circle Gateway configuration from environment variables
  */
-export function getCircleGatewayConfig(): CircleGatewayConfig | null {
+export function getCircleGatewayConfig(network: ArcNetwork = DEFAULT_NETWORK): CircleGatewayConfig | null {
   const apiKey = process.env.CIRCLE_GATEWAY_API_KEY;
   
   if (!apiKey) {
@@ -206,7 +210,9 @@ export function getCircleGatewayConfig(): CircleGatewayConfig | null {
 
   return {
     apiKey,
-    baseUrl: process.env.CIRCLE_GATEWAY_BASE_URL || 'https://gateway-api-testnet.circle.com/v1',
+    network,
+    // Optional override; otherwise the selected network's Gateway API is used
+    baseUrl: process.env.CIRCLE_GATEWAY_BASE_URL,
   };
 }
 
@@ -262,13 +268,5 @@ export async function getDirectChainBalances(
  * Get chain name from chain ID
  */
 function getChainName(chainId: number): string {
-  const chainNames: Record<number, string> = {
-    5042002: 'Arc Testnet',
-    11155111: 'Ethereum Sepolia',
-    80002: 'Polygon Amoy',
-    43113: 'Avalanche Fuji',
-    84532: 'Base Sepolia',
-  };
-  
-  return chainNames[chainId] || `Chain ${chainId}`;
+  return CHAIN_NAMES[chainId] || `Chain ${chainId}`;
 }

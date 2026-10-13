@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractWalletFromBody, validateWalletAddress } from '@/lib/auth';
 import { normalizeAddress } from '@/lib/wallet';
+import { PRIMARY_CHAIN_ID, CHAIN_NAMES, TOKEN_DECIMALS, parseArcChainId } from '@/lib/constants';
+import { parseTokenAmount } from '@/lib/blockchain';
+import { verifyPayment } from '@/lib/payment-verifier';
+
+// The server's RPC can lag a few seconds behind the wallet's, so retry while the tx isn't visible yet
+async function verifyPaymentWithRetry(
+  ...args: Parameters<typeof verifyPayment>
+): ReturnType<typeof verifyPayment> {
+  const MAX_ATTEMPTS = 4;
+  let result = await verifyPayment(...args);
+  for (let attempt = 1; attempt < MAX_ATTEMPTS && result.error === 'Transaction not found'; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    result = await verifyPayment(...args);
+  }
+  return result;
+}
 
 /**
  * POST /api/payments
@@ -10,7 +26,8 @@ import { normalizeAddress } from '@/lib/wallet';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { walletAddress, itemId, amount, txHash } = body;
+    const { itemId, amount, txHash } = body;
+    const chainId = body.chainId === undefined ? PRIMARY_CHAIN_ID : parseArcChainId(body.chainId);
 
     const walletValidation = extractWalletFromBody(body);
     if (!walletValidation.isValid || !walletValidation.address) {
@@ -41,6 +58,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (chainId === null) {
+      return NextResponse.json(
+        { error: 'Unsupported chain ID. Payments must be made on Arc Mainnet or Arc Testnet' },
+        { status: 400 }
+      );
+    }
+
     // Verify item exists
     const item = await prisma.paymentItem.findUnique({
       where: { id: itemId },
@@ -48,6 +72,7 @@ export async function POST(request: NextRequest) {
         page: {
           select: {
             creatorWallet: true,
+            chainId: true,
           },
         },
       },
@@ -57,6 +82,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Payment item not found' },
         { status: 404 }
+      );
+    }
+
+    // Payments are only accepted on the network the creator chose for this page
+    if (chainId !== item.page.chainId) {
+      return NextResponse.json(
+        { error: `This page only accepts payments on ${CHAIN_NAMES[item.page.chainId]}` },
+        { status: 400 }
       );
     }
 
@@ -72,22 +105,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate amount for fixed price items
-    // Note: amount is in smallest unit (6 decimals for USDC), priceUsdc field stores USDC amount in human-readable format
-    // We need to convert priceUsdc to smallest unit for comparison
+    // Verify the transfer on-chain before recording it: right chain, right recipient,
+    // right amount (fixed price), and sent by the wallet claiming the payment
+    let expectedAmountWei: string | undefined;
     if (item.type === 'fixed' && item.priceUsdc) {
-      const { parseTokenAmount } = await import('@/lib/blockchain');
-      const { TOKEN_DECIMALS } = await import('@/lib/constants');
-      const expectedAmountWei = parseTokenAmount(item.priceUsdc, TOKEN_DECIMALS).toString();
-      const providedAmount = amount; // Already in smallest unit from blockchain
-      
-      // Compare as strings to handle precision
-      if (expectedAmountWei !== providedAmount) {
-        return NextResponse.json(
-          { error: `Amount mismatch. Expected ${item.priceUsdc} USDC, but payment amount doesn't match` },
-          { status: 400 }
-        );
-      }
+      expectedAmountWei = parseTokenAmount(item.priceUsdc, TOKEN_DECIMALS).toString();
+    }
+
+    const verification = await verifyPaymentWithRetry(
+      txHash,
+      normalizeAddress(item.page.creatorWallet),
+      expectedAmountWei,
+      chainId
+    );
+
+    if (!verification.isValid) {
+      return NextResponse.json(
+        { error: `Payment could not be verified on-chain: ${verification.error}` },
+        { status: 400 }
+      );
+    }
+
+    if (verification.from !== normalizeAddress(walletValidation.address)) {
+      return NextResponse.json(
+        { error: 'Transaction was not sent by this wallet' },
+        { status: 403 }
+      );
     }
 
     // Create payment record
@@ -95,8 +138,9 @@ export async function POST(request: NextRequest) {
       data: {
         itemId: itemId,
         payerWallet: walletValidation.address,
-        amount: amount,
+        amount: verification.amount, // On-chain amount, not the client-supplied one
         txHash: txHash,
+        chainId,
       },
       include: {
         item: {
@@ -118,6 +162,7 @@ export async function POST(request: NextRequest) {
         payerWallet: payment.payerWallet,
         amount: payment.amount,
         txHash: payment.txHash,
+        chainId: payment.chainId,
         createdAt: payment.createdAt,
         item: payment.item,
       },
@@ -193,6 +238,7 @@ export async function GET(request: NextRequest) {
         payerWallet: payment.payerWallet,
         amount: payment.amount,
         txHash: payment.txHash,
+        chainId: payment.chainId,
         createdAt: payment.createdAt,
         item: payment.item,
       },

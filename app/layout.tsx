@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ThirdWebProvider from "@/components/providers/ThirdWebProvider";
 import { WalletProvider } from "@/components/wallet/WalletProvider";
+import { NetworkProvider } from "@/components/providers/NetworkProvider";
 import { ToastProvider } from "@/components/ui/ToastProvider";
 import WalletDisconnectHandler from "@/components/auth/WalletDisconnectHandler";
 
@@ -30,12 +31,14 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ThirdWebProvider>
-          <WalletProvider>
-            <ToastProvider>
-              <WalletDisconnectHandler />
-              {children}
-            </ToastProvider>
-          </WalletProvider>
+          <NetworkProvider>
+            <WalletProvider>
+              <ToastProvider>
+                <WalletDisconnectHandler />
+                {children}
+              </ToastProvider>
+            </WalletProvider>
+          </NetworkProvider>
         </ThirdWebProvider>
       </body>
     </html>

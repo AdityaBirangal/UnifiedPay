@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import Header from '@/components/layout/Header';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 import { useWallet } from '@/components/wallet/WalletProvider';
 import { useActiveAccount } from 'thirdweb/react';
 
 export default function TestVerificationPage() {
   const { walletAddress } = useWallet();
+  const { config: networkConfig } = useNetwork();
   const account = useActiveAccount();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -43,6 +45,7 @@ export default function TestVerificationPage() {
           txHash,
           recipientAddress,
           expectedAmount: expectedAmount || undefined,
+          chainId: networkConfig.arcChainId,
         }),
       });
 
@@ -66,7 +69,7 @@ export default function TestVerificationPage() {
     setResult(null);
 
     try {
-      const url = `/api/payments/verify/${txHash}?recipient=${encodeURIComponent(recipientAddress)}${expectedAmount ? `&amount=${expectedAmount}` : ''}`;
+      const url = `/api/payments/verify/${txHash}?recipient=${encodeURIComponent(recipientAddress)}${expectedAmount ? `&amount=${expectedAmount}` : ''}&chainId=${networkConfig.arcChainId}`;
       const response = await fetch(url);
       const data = await response.json();
       setResult(data);
@@ -97,6 +100,7 @@ export default function TestVerificationPage() {
           walletAddress: scanWallet,
           fromBlock: fromBlock ? parseInt(fromBlock) : undefined,
           toBlock: toBlock ? parseInt(toBlock) : undefined,
+          chainId: networkConfig.arcChainId,
         }),
       });
 

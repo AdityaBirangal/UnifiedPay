@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyPayment } from '@/lib/payment-verifier';
 import { prisma } from '@/lib/prisma';
 import { normalizeAddress } from '@/lib/wallet';
+import { PRIMARY_CHAIN_ID, parseArcChainId } from '@/lib/constants';
 
 /**
  * GET /api/payments/verify/[txHash]
@@ -26,13 +27,6 @@ export async function GET(
 
     const normalizedRecipient = normalizeAddress(recipientAddress);
 
-    // Verify payment on blockchain
-    const verification = await verifyPayment(
-      txHash,
-      normalizedRecipient,
-      expectedAmount || undefined
-    );
-
     // Check if payment exists in database
     const existingPayment = await prisma.payment.findUnique({
       where: { txHash },
@@ -48,6 +42,17 @@ export async function GET(
         },
       },
     });
+
+    // Verify on the requested chain, else the chain the payment was recorded on
+    const chainId = parseArcChainId(searchParams.get('chainId')) ?? existingPayment?.chainId ?? PRIMARY_CHAIN_ID;
+
+    // Verify payment on blockchain
+    const verification = await verifyPayment(
+      txHash,
+      normalizedRecipient,
+      expectedAmount || undefined,
+      chainId
+    );
 
     return NextResponse.json({
       success: true,
@@ -67,6 +72,7 @@ export async function GET(
         itemId: existingPayment.itemId,
         payerWallet: existingPayment.payerWallet,
         amount: existingPayment.amount,
+        chainId: existingPayment.chainId,
         createdAt: existingPayment.createdAt,
         item: existingPayment.item,
       } : null,

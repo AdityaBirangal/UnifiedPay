@@ -7,12 +7,13 @@ import Link from 'next/link';
 import { useActiveAccount } from 'thirdweb/react';
 import { formatTokenAmount } from '@/lib/blockchain';
 import ConnectWallet from '@/components/wallet/ConnectWallet';
-import { ARCSCAN_URL } from '@/lib/constants';
+import { getExplorerTxUrl } from '@/lib/constants';
 
 interface PaymentData {
   payment: {
     id: string;
     txHash: string;
+    chainId: number;
     amount: string;
     createdAt: string;
     item: {
@@ -194,7 +195,7 @@ export default function PaymentSuccessPage() {
                 <div className="flex items-center gap-2">
                   <p className="font-mono text-sm break-all text-gray-900 dark:text-gray-100">{data.payment.txHash}</p>
                   <a
-                    href={`${ARCSCAN_URL}/tx/${data.payment.txHash}`}
+                    href={getExplorerTxUrl(data.payment.txHash, data.payment.chainId)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"

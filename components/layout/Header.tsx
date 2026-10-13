@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import ConnectWallet from '@/components/wallet/ConnectWallet';
+import NetworkToggle from '@/components/wallet/NetworkToggle';
 import { useActiveAccount } from 'thirdweb/react';
 
 export default function Header() {
@@ -116,6 +117,7 @@ export default function Header() {
 
             {/* Desktop Connect */}
             <div className="hidden md:flex items-center gap-3">
+              <NetworkToggle />
               <div className="flex-shrink-0">
                 <ConnectWallet />
               </div>
@@ -242,8 +244,9 @@ export default function Header() {
               ))}
             </div>
 
-            {/* Mobile Connect Wallet */}
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 px-4">
+            {/* Mobile Network + Connect Wallet */}
+            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800 px-4 space-y-4">
+              <NetworkToggle />
               <ConnectWallet />
             </div>
           </nav>

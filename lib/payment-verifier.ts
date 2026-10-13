@@ -21,14 +21,15 @@ interface PaymentVerification {
 export async function verifyPayment(
   txHash: string,
   expectedTo: string,
-  expectedAmount?: string // in wei, optional for open payments
+  expectedAmount?: string, // in wei, optional for open payments
+  chainId: number = PRIMARY_CHAIN_ID // Arc chain the payment was made on
 ): Promise<PaymentVerification> {
   try {
     // Check cache first (for basic validation, full verification still needed for amount/recipient)
     // Cache helps reduce calls when same tx is verified multiple times
     const cached = getCachedVerification(txHash);
     
-    const targetChainId = PRIMARY_CHAIN_ID; // Verify on Arc (primary chain)
+    const targetChainId = chainId;
     const provider = getProvider(targetChainId);
     const tokenAddress = getUSDCAddress(targetChainId);
     const normalizedTo = normalizeAddress(expectedTo);

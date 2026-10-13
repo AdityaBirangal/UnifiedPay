@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { validateWalletAddress } from '@/lib/auth';
 import { normalizeAddress } from '@/lib/wallet';
+import { parseArcChainId } from '@/lib/constants';
 
 /**
- * GET /api/payments/analytics?address=0x...
+ * GET /api/payments/analytics?address=0x...&chainId=5042
  * Get payment analytics for a creator wallet
  */
 export async function GET(request: NextRequest) {
@@ -18,6 +19,9 @@ export async function GET(request: NextRequest) {
     }
 
     const normalizedWallet = normalizeAddress(walletValidation.address);
+    // Optional: only count one Arc network in the summary (keeps mainnet and testnet totals separate)
+    const chainId = parseArcChainId(request.nextUrl.searchParams.get('chainId'));
+    const chainFilter = chainId !== null ? { chainId } : {};
 
     // Get all payment pages for this creator
     const pages = await prisma.paymentPage.findMany({
@@ -55,6 +59,7 @@ export async function GET(request: NextRequest) {
         payments: Array<{
           id: string;
           txHash: string;
+          chainId: number;
           amount: string;
           payerWallet: string;
           createdAt: string;
@@ -74,6 +79,7 @@ export async function GET(request: NextRequest) {
         payments: Array<{
           id: string;
           txHash: string;
+          chainId: number;
           amount: string;
           payerWallet: string;
           createdAt: string;
@@ -87,11 +93,14 @@ export async function GET(request: NextRequest) {
           const amount = BigInt(payment.amount);
           itemTotal += amount;
           pageTotal += amount;
-          totalAmount += amount;
+          if (chainId === null || page.chainId === chainId) {
+            totalAmount += amount;
+          }
           pagePaymentCount++;
           return {
             id: payment.id,
             txHash: payment.txHash,
+            chainId: payment.chainId,
             amount: payment.amount,
             payerWallet: payment.payerWallet,
             createdAt: payment.createdAt.toISOString(),
@@ -119,6 +128,7 @@ export async function GET(request: NextRequest) {
     // Get all transactions (for history)
     const allPayments = await prisma.payment.findMany({
       where: {
+        ...chainFilter,
         item: {
           page: {
             creatorWallet: normalizedWallet,
@@ -147,6 +157,7 @@ export async function GET(request: NextRequest) {
     const transactionHistory = allPayments.map((payment) => ({
       id: payment.id,
       txHash: payment.txHash,
+      chainId: payment.chainId,
       amount: payment.amount,
       payerWallet: payment.payerWallet,
       createdAt: payment.createdAt.toISOString(),

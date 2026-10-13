@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { useActiveAccount } from 'thirdweb/react';
 import Link from 'next/link';
-import { ARCSCAN_URL } from '@/lib/constants';
+import { getExplorerTxUrl } from '@/lib/constants';
 
 interface AccessData {
   hasAccess: boolean;
@@ -17,6 +17,7 @@ interface AccessData {
   };
   payment?: {
     txHash: string;
+    chainId: number;
     amount: string;
     createdAt: string;
   };
@@ -188,7 +189,7 @@ export default function ContentAccessPage() {
                       {accessData.payment.txHash}
                     </p>
                     <a
-                      href={`${ARCSCAN_URL}/tx/${accessData.payment.txHash}`}
+                      href={getExplorerTxUrl(accessData.payment.txHash, accessData.payment.chainId)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-shrink-0 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"

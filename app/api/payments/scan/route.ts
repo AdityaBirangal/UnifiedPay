@@ -22,9 +22,10 @@ export async function POST(request: NextRequest) {
 
     const normalizedWallet = normalizeAddress(walletAddress);
 
-    // Get current block if toBlock not provided (on Arc chain)
-    const { PRIMARY_CHAIN_ID } = await import('@/lib/constants');
-    const provider = getProvider(PRIMARY_CHAIN_ID);
+    // Get current block if toBlock not provided (on the selected Arc chain)
+    const { PRIMARY_CHAIN_ID, parseArcChainId } = await import('@/lib/constants');
+    const chainId = parseArcChainId(body.chainId) ?? PRIMARY_CHAIN_ID;
+    const provider = getProvider(chainId);
     const currentBlock = await provider.getBlockNumber();
     const scanToBlock = toBlock || currentBlock;
     const scanFromBlock = fromBlock || Math.max(0, scanToBlock - 1000); // Default: last 1000 blocks
@@ -34,13 +35,14 @@ export async function POST(request: NextRequest) {
       normalizedWallet,
       scanFromBlock,
       scanToBlock,
-      PRIMARY_CHAIN_ID
+      chainId
     );
 
     // Get all payment items for this creator
     const paymentPages = await prisma.paymentPage.findMany({
       where: {
         creatorWallet: normalizedWallet,
+        chainId,
       },
       include: {
         items: true,
@@ -82,6 +84,7 @@ export async function POST(request: NextRequest) {
                   payerWallet: transfer.from,
                   amount: transfer.amount,
                   txHash: transfer.txHash,
+                  chainId,
                 },
               });
               matchedPayments.push({
@@ -128,6 +131,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       scanned: {
+        chainId,
         fromBlock: scanFromBlock,
         toBlock: scanToBlock,
         totalTransfers: transfers.length,

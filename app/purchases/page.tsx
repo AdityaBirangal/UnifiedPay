@@ -6,13 +6,15 @@ import ConnectWallet from '@/components/wallet/ConnectWallet';
 import { useActiveAccount } from 'thirdweb/react';
 import { formatTokenAmount } from '@/lib/blockchain';
 import { shortenAddress } from '@/lib/wallet';
-import { ARCSCAN_URL } from '@/lib/constants';
+import { getExplorerTxUrl } from '@/lib/constants';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 import Link from 'next/link';
 import ENSAddress from '@/components/ens/ENSAddress';
 
 interface Purchase {
   id: string;
   txHash: string;
+  chainId: number;
   amount: string;
   createdAt: string;
   item: {
@@ -39,6 +41,7 @@ interface PurchaseHistory {
 
 export default function PurchasesPage() {
   const account = useActiveAccount();
+  const { config: networkConfig } = useNetwork();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<PurchaseHistory | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +57,7 @@ export default function PurchasesPage() {
       setError(null);
 
       try {
-        const response = await fetch(`/api/payments/history?wallet=${account.address}`);
+        const response = await fetch(`/api/payments/history?wallet=${account.address}&chainId=${networkConfig.arcChainId}`);
         const result = await response.json();
 
         if (!response.ok) {
@@ -70,7 +73,7 @@ export default function PurchasesPage() {
     };
 
     fetchPurchases();
-  }, [account?.address]);
+  }, [account?.address, networkConfig.arcChainId]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -281,7 +284,7 @@ export default function PurchasesPage() {
                             </svg>
                             <span className="text-gray-500 dark:text-gray-400 text-xs">Transaction:</span>
                             <a
-                              href={`${ARCSCAN_URL}/tx/${purchase.txHash}`}
+                              href={getExplorerTxUrl(purchase.txHash, purchase.chainId)}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="font-mono text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 break-all"

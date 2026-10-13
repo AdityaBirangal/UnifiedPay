@@ -1,138 +1,50 @@
 import { defineChain } from 'thirdweb/chains';
 
 /**
- * Arc Testnet Configuration
- * Arc is an EVM-compatible chain optimized for USDC
+ * Arc Network Configuration (mainnet + testnet)
+ * Arc is an EVM-compatible chain that uses USDC as its native gas token
+ * Source: https://docs.arc.io/arc/references/connect-to-arc
  */
-import { SUPPORTED_CHAINS } from './constants';
+import { SUPPORTED_CHAINS, EXPLORER_URLS, NETWORKS, ArcNetwork } from './constants';
+import { getRpcUrl } from './blockchain';
+
+// Native gas token on Arc is USDC (18 decimals natively; the ERC-20 interface uses 6)
+const ARC_NATIVE_CURRENCY = {
+  name: 'USDC',
+  symbol: 'USDC',
+  decimals: 18,
+};
+
+export const ARC_MAINNET = defineChain({
+  id: SUPPORTED_CHAINS.ARC_MAINNET,
+  name: 'Arc Mainnet',
+  rpc: getRpcUrl(SUPPORTED_CHAINS.ARC_MAINNET)!,
+  nativeCurrency: ARC_NATIVE_CURRENCY,
+  blockExplorers: [
+    {
+      name: 'Arc Explorer',
+      url: EXPLORER_URLS[SUPPORTED_CHAINS.ARC_MAINNET],
+    },
+  ],
+});
 
 export const ARC_TESTNET = defineChain({
   id: SUPPORTED_CHAINS.ARC_TESTNET,
   name: 'Arc Testnet',
-  rpc: process.env.NEXT_PUBLIC_RPC_URL_ARC_TESTNET || 'https://rpc.testnet.arc.network',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
+  rpc: getRpcUrl(SUPPORTED_CHAINS.ARC_TESTNET)!,
+  nativeCurrency: ARC_NATIVE_CURRENCY,
   blockExplorers: [
     {
-      name: 'Arcscan',
-      url: process.env.NEXT_PUBLIC_ARCSCAN_URL || 'https://testnet.arcscan.app',
+      name: 'Arc Explorer',
+      url: EXPLORER_URLS[SUPPORTED_CHAINS.ARC_TESTNET],
     },
   ],
+  testnet: true,
 });
 
 /**
- * Ethereum Sepolia Testnet
+ * Get the Arc chain for the selected network
  */
-export const ETHEREUM_SEPOLIA = defineChain({
-  id: 11155111,
-  name: 'Ethereum Sepolia',
-  rpc: process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA || 'https://eth-sepolia.g.alchemy.com/v2/demo',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  blockExplorers: [
-    {
-      name: 'Etherscan',
-      url: 'https://sepolia.etherscan.io',
-    },
-  ],
-});
-
-/**
- * Polygon Amoy Testnet
- */
-export const POLYGON_AMOY = defineChain({
-  id: 80002,
-  name: 'Polygon Amoy',
-  rpc: process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY || 'https://polygon-amoy.g.alchemy.com/v2/demo',
-  nativeCurrency: {
-    name: 'MATIC',
-    symbol: 'MATIC',
-    decimals: 18,
-  },
-  blockExplorers: [
-    {
-      name: 'Polygonscan',
-      url: 'https://amoy.polygonscan.com',
-    },
-  ],
-});
-
-/**
- * Avalanche Fuji Testnet
- */
-export const AVALANCHE_FUJI = defineChain({
-  id: 43113,
-  name: 'Avalanche Fuji',
-  rpc: process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI || 'https://avax-fuji.g.alchemy.com/v2/demo',
-  nativeCurrency: {
-    name: 'Avalanche',
-    symbol: 'AVAX',
-    decimals: 18,
-  },
-  blockExplorers: [
-    {
-      name: 'Snowtrace',
-      url: 'https://testnet.snowtrace.io',
-    },
-  ],
-});
-
-/**
- * Base Sepolia Testnet
- */
-export const BASE_SEPOLIA = defineChain({
-  id: 84532,
-  name: 'Base Sepolia',
-  rpc: process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA || 'https://base-sepolia.g.alchemy.com/v2/demo',
-  nativeCurrency: {
-    name: 'Ether',
-    symbol: 'ETH',
-    decimals: 18,
-  },
-  blockExplorers: [
-    {
-      name: 'Basescan',
-      url: 'https://sepolia.basescan.org',
-    },
-  ],
-});
-
-/**
- * Get chain configuration by chain ID
- */
-export function getChainById(chainId: number) {
-  switch (chainId) {
-    case ARC_TESTNET.id:
-      return ARC_TESTNET;
-    case ETHEREUM_SEPOLIA.id:
-      return ETHEREUM_SEPOLIA;
-    case POLYGON_AMOY.id:
-      return POLYGON_AMOY;
-    case AVALANCHE_FUJI.id:
-      return AVALANCHE_FUJI;
-    case BASE_SEPOLIA.id:
-      return BASE_SEPOLIA;
-    default:
-      return ARC_TESTNET; // Default to Arc
-  }
-}
-
-/**
- * Get all supported chains
- */
-export function getSupportedChains() {
-  return [ARC_TESTNET, ETHEREUM_SEPOLIA, POLYGON_AMOY, AVALANCHE_FUJI, BASE_SEPOLIA];
-}
-
-/**
- * Check if a chain ID is supported
- */
-export function isSupportedChain(chainId: number): boolean {
-  return getSupportedChains().some((chain) => chain.id === chainId);
+export function getArcChain(network: ArcNetwork) {
+  return NETWORKS[network].arcChainId === ARC_TESTNET.id ? ARC_TESTNET : ARC_MAINNET;
 }

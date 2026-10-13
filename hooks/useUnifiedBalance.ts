@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useActiveAccount } from 'thirdweb/react';
 import { normalizeAddress } from '@/lib/wallet';
+import { ArcNetwork } from '@/lib/constants';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 
 export interface UnifiedBalance {
   total: string;
@@ -19,24 +21,25 @@ const pendingRequests = new Map<string, Promise<UnifiedBalance | null>>();
 const balanceCache = new Map<string, { balance: UnifiedBalance | null; timestamp: number }>();
 const CACHE_TTL = 5000; // Cache for 5 seconds
 
-async function fetchBalanceForWallet(walletAddress: string): Promise<UnifiedBalance | null> {
+async function fetchBalanceForWallet(walletAddress: string, network: ArcNetwork): Promise<UnifiedBalance | null> {
   const normalizedAddress = normalizeAddress(walletAddress);
+  const cacheKey = `${network}:${normalizedAddress}`;
   
   // Check cache first
-  const cached = balanceCache.get(normalizedAddress);
+  const cached = balanceCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.balance;
   }
 
   // If request is already in flight, reuse it
-  if (pendingRequests.has(normalizedAddress)) {
-    return pendingRequests.get(normalizedAddress)!;
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey)!;
   }
 
   // Create new request
   const requestPromise = (async () => {
     try {
-      const response = await fetch(`/api/balance/unified?wallet=${normalizedAddress}`);
+      const response = await fetch(`/api/balance/unified?wallet=${normalizedAddress}&network=${network}`);
 
       if (!response.ok) {
         const data = await response.json();
@@ -47,7 +50,7 @@ async function fetchBalanceForWallet(walletAddress: string): Promise<UnifiedBala
       const balance = data.balance as UnifiedBalance | null;
       
       // Update cache
-      balanceCache.set(normalizedAddress, {
+      balanceCache.set(cacheKey, {
         balance,
         timestamp: Date.now(),
       });
@@ -58,16 +61,17 @@ async function fetchBalanceForWallet(walletAddress: string): Promise<UnifiedBala
       throw err;
     } finally {
       // Remove from pending requests after completion
-      pendingRequests.delete(normalizedAddress);
+      pendingRequests.delete(cacheKey);
     }
   })();
 
-  pendingRequests.set(normalizedAddress, requestPromise);
+  pendingRequests.set(cacheKey, requestPromise);
   return requestPromise;
 }
 
 export function useUnifiedBalance() {
   const account = useActiveAccount();
+  const { network } = useNetwork();
   const [balance, setBalance] = useState<UnifiedBalance | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +94,7 @@ export function useUnifiedBalance() {
       setError(null);
 
       try {
-        const result = await fetchBalanceForWallet(account.address);
+        const result = await fetchBalanceForWallet(account.address, network);
         setBalance(result);
         isFirstFetchRef.current = false;
       } catch (err) {
@@ -115,7 +119,7 @@ export function useUnifiedBalance() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [account?.address]);
+  }, [account?.address, network]);
 
   return {
     balance,
@@ -130,9 +134,9 @@ export function useUnifiedBalance() {
       try {
         // Clear cache to force fresh fetch
         const normalizedAddress = normalizeAddress(account.address);
-        balanceCache.delete(normalizedAddress);
+        balanceCache.delete(`${network}:${normalizedAddress}`);
         
-        const result = await fetchBalanceForWallet(account.address);
+        const result = await fetchBalanceForWallet(account.address, network);
         setBalance(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch balance');

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { resolveENSName, lookupENSName, getENSAvatar } from '@/lib/ens';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 
 /**
  * ENS React Hooks
@@ -37,6 +38,7 @@ interface ENSAvatarResult {
  * return <div>{ensName || "0x1234..."}</div>
  */
 export function useENSName(address: string | null | undefined): ENSNameResult {
+  const { network } = useNetwork();
   const [ensName, setEnsName] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -53,7 +55,7 @@ export function useENSName(address: string | null | undefined): ENSNameResult {
     setLoading(true);
     setError(null);
 
-    lookupENSName(address)
+    lookupENSName(address, network)
       .then((name) => {
         if (mounted) {
           setEnsName(name);
@@ -71,7 +73,7 @@ export function useENSName(address: string | null | undefined): ENSNameResult {
     return () => {
       mounted = false;
     };
-  }, [address]);
+  }, [address, network]);
 
   return { ensName, loading, error };
 }
@@ -86,6 +88,7 @@ export function useENSName(address: string | null | undefined): ENSNameResult {
  * const { address, loading } = useENSAddress("vitalik.eth");
  */
 export function useENSAddress(ensName: string | null | undefined): ENSAddressResult {
+  const { network } = useNetwork();
   const [address, setAddress] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -102,7 +105,7 @@ export function useENSAddress(ensName: string | null | undefined): ENSAddressRes
     setLoading(true);
     setError(null);
 
-    resolveENSName(ensName)
+    resolveENSName(ensName, network)
       .then((addr) => {
         if (mounted) {
           setAddress(addr);
@@ -120,7 +123,7 @@ export function useENSAddress(ensName: string | null | undefined): ENSAddressRes
     return () => {
       mounted = false;
     };
-  }, [ensName]);
+  }, [ensName, network]);
 
   return { address, loading, error };
 }
@@ -136,6 +139,7 @@ export function useENSAddress(ensName: string | null | undefined): ENSAddressRes
  * {avatar && <img src={avatar} alt="ENS Avatar" />}
  */
 export function useENSAvatar(ensName: string | null | undefined): ENSAvatarResult {
+  const { network } = useNetwork();
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
@@ -152,7 +156,7 @@ export function useENSAvatar(ensName: string | null | undefined): ENSAvatarResul
     setLoading(true);
     setError(null);
 
-    getENSAvatar(ensName)
+    getENSAvatar(ensName, network)
       .then((avatarUrl) => {
         if (mounted) {
           setAvatar(avatarUrl);
@@ -170,7 +174,7 @@ export function useENSAvatar(ensName: string | null | undefined): ENSAvatarResul
     return () => {
       mounted = false;
     };
-  }, [ensName]);
+  }, [ensName, network]);
 
   return { avatar, loading, error };
 }

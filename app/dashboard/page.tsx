@@ -8,7 +8,9 @@ import { useActiveAccount } from 'thirdweb/react';
 import Link from 'next/link';
 import { formatTokenAmount } from '@/lib/blockchain';
 import { shortenAddress } from '@/lib/wallet';
-import { ARCSCAN_URL } from '@/lib/constants';
+import { getExplorerTxUrl } from '@/lib/constants';
+import NetworkBadge from '@/components/ui/NetworkBadge';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 import Skeleton from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/ToastProvider';
 import ENSAddress from '@/components/ens/ENSAddress';
@@ -34,6 +36,7 @@ interface Analytics {
       payments: Array<{
         id: string;
         txHash: string;
+        chainId: number;
         amount: string;
         payerWallet: string;
         createdAt: string;
@@ -43,6 +46,7 @@ interface Analytics {
   transactionHistory: Array<{
     id: string;
     txHash: string;
+    chainId: number;
     amount: string;
     payerWallet: string;
     createdAt: string;
@@ -60,6 +64,7 @@ interface Analytics {
 export default function DashboardPage() {
   const { user, loading } = useWallet();
   const account = useActiveAccount();
+  const { config: networkConfig } = useNetwork();
   const { showToast } = useToast();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
@@ -78,7 +83,7 @@ export default function DashboardPage() {
       setAnalyticsError(null);
 
       try {
-        const response = await fetch(`/api/payments/analytics?address=${account.address}`);
+        const response = await fetch(`/api/payments/analytics?address=${account.address}&chainId=${networkConfig.arcChainId}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -94,7 +99,7 @@ export default function DashboardPage() {
     };
 
     fetchAnalytics();
-  }, [account?.address]);
+  }, [account?.address, networkConfig.arcChainId]);
 
   const togglePage = (pageId: string) => {
     const newExpanded = new Set(expandedPages);
@@ -321,6 +326,7 @@ export default function DashboardPage() {
                                   >
                                     {page.title}
                                   </Link>
+                                  <NetworkBadge chainId={page.chainId} className="mt-1" />
                                 {page.description && (
                                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                                     {page.description}
@@ -452,7 +458,7 @@ export default function DashboardPage() {
                                               <div className="flex items-start justify-between gap-3">
                                                 <div className="flex-1 min-w-0">
                                                   <a
-                                                    href={`${ARCSCAN_URL}/tx/${payment.txHash}`}
+                                                    href={getExplorerTxUrl(payment.txHash, payment.chainId)}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="font-mono text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors break-all"

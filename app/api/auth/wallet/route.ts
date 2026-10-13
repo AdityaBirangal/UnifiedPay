@@ -71,6 +71,7 @@ export async function GET(request: NextRequest) {
             id: true,
             title: true,
             description: true,
+            chainId: true,
             createdAt: true,
           },
         },

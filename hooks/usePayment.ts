@@ -6,14 +6,16 @@ import { prepareContractCall, sendTransaction, waitForReceipt } from 'thirdweb';
 import { getContract } from 'thirdweb/contract';
 import { getUSDCAddress, parseTokenAmount } from '@/lib/blockchain';
 import { getThirdwebClient } from '@/lib/thirdweb-client';
-import { PRIMARY_CHAIN_ID, SUPPORTED_CHAINS, TOKEN_DECIMALS } from '@/lib/constants';
-import { ARC_TESTNET } from '@/lib/chains';
+import { TOKEN_DECIMALS, getNetworkForArcChainId } from '@/lib/constants';
+import { getArcChain } from '@/lib/chains';
+import { useNetwork } from '@/components/providers/NetworkProvider';
 import { useUnifiedBalance } from './useUnifiedBalance';
 
 interface PaymentParams {
   itemId: string;
   recipientAddress: string;
   amount: string; // Human-readable amount (e.g., "10.5")
+  chainId?: number; // Arc chain the page accepts payments on (defaults to the selected network)
   onSuccess?: (txHash: string) => void;
   onError?: (error: Error) => void;
 }
@@ -21,6 +23,7 @@ interface PaymentParams {
 export function usePayment() {
   const account = useActiveAccount();
   const chain = useActiveWalletChain();
+  const { arcChain } = useNetwork();
   const { balance: unifiedBalance } = useUnifiedBalance();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +32,7 @@ export function usePayment() {
     itemId,
     recipientAddress,
     amount,
+    chainId,
     onSuccess,
     onError,
   }: PaymentParams): Promise<string | null> => {
@@ -39,9 +43,10 @@ export function usePayment() {
       return null;
     }
 
-    // Check if chain is correct (Arc is now the primary chain)
-    if (!chain || chain.id !== SUPPORTED_CHAINS.ARC_TESTNET) {
-      const err = new Error(`Please switch to Arc Network Testnet (Chain ID: ${SUPPORTED_CHAINS.ARC_TESTNET})`);
+    // Pay on the page's Arc chain; the wallet must be on it
+    const payChain = chainId ? getArcChain(getNetworkForArcChainId(chainId)) : arcChain;
+    if (!chain || chain.id !== payChain.id) {
+      const err = new Error(`Please switch to ${payChain.name} (Chain ID: ${payChain.id})`);
       setError(err.message);
       onError?.(err);
       return null;
@@ -64,7 +69,7 @@ export function usePayment() {
 
     try {
       const client = getThirdwebClient();
-      const tokenAddress = getUSDCAddress(SUPPORTED_CHAINS.ARC_TESTNET);
+      const tokenAddress = getUSDCAddress(payChain.id);
 
       // Parse amount to smallest unit (USDC uses 6 decimals, not 18)
       const amountWei = parseTokenAmount(amount, TOKEN_DECIMALS);
@@ -72,7 +77,7 @@ export function usePayment() {
       // Get contract instance (use Arc chain)
       const contract = getContract({
         client,
-        chain: ARC_TESTNET,
+        chain: payChain,
         address: tokenAddress,
       });
 
@@ -109,6 +114,7 @@ export function usePayment() {
           itemId,
           amount: amountWei.toString(), // Store as wei string in database
           txHash,
+          chainId: payChain.id,
         }),
       });
 
@@ -137,6 +143,7 @@ export function usePayment() {
     loading,
     error,
     isConnected: !!account,
-    isCorrectChain: chain?.id === SUPPORTED_CHAINS.ARC_TESTNET,
+    isCorrectChain: chain?.id === arcChain.id,
+    arcChain,
   };
 }

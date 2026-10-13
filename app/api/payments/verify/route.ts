@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyPayment } from '@/lib/payment-verifier';
 import { prisma } from '@/lib/prisma';
 import { normalizeAddress } from '@/lib/wallet';
+import { PRIMARY_CHAIN_ID, parseArcChainId } from '@/lib/constants';
 
 /**
  * POST /api/payments/verify
@@ -28,22 +29,6 @@ export async function POST(request: NextRequest) {
 
     const normalizedRecipient = normalizeAddress(recipientAddress);
 
-    // Verify payment on blockchain
-    const verification = await verifyPayment(
-      txHash,
-      normalizedRecipient,
-      expectedAmount
-    );
-
-    if (!verification.isValid) {
-      return NextResponse.json({
-        success: false,
-        verified: false,
-        error: verification.error,
-        verification,
-      });
-    }
-
     // Check if payment exists in database
     const existingPayment = await prisma.payment.findUnique({
       where: { txHash },
@@ -59,6 +44,26 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Verify on the requested chain, else the chain the payment was recorded on
+    const chainId = parseArcChainId(body.chainId) ?? existingPayment?.chainId ?? PRIMARY_CHAIN_ID;
+
+    // Verify payment on blockchain
+    const verification = await verifyPayment(
+      txHash,
+      normalizedRecipient,
+      expectedAmount,
+      chainId
+    );
+
+    if (!verification.isValid) {
+      return NextResponse.json({
+        success: false,
+        verified: false,
+        error: verification.error,
+        verification,
+      });
+    }
 
     // Verify recipient matches
     if (existingPayment) {
@@ -83,6 +88,7 @@ export async function POST(request: NextRequest) {
         amount: verification.amount,
         blockNumber: verification.blockNumber,
         timestamp: verification.timestamp,
+        chainId,
       },
       paymentExists: !!existingPayment,
     });

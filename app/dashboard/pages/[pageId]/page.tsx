@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import NetworkBadge from '@/components/ui/NetworkBadge';
 import Header from '@/components/layout/Header';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { useWallet } from '@/components/wallet/WalletProvider';
@@ -24,6 +25,7 @@ interface PaymentPage {
   id: string;
   title: string;
   description: string | null;
+  chainId: number;
   createdAt: string;
   updatedAt: string;
   items: PaymentItem[];
@@ -179,7 +181,10 @@ export default function PaymentPageDetail() {
               </Link>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{page.title}</h1>
+                  <div className="flex flex-wrap items-center gap-3 mb-2">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{page.title}</h1>
+                    <NetworkBadge chainId={page.chainId} />
+                  </div>
                   {page.description && (
                     <p className="text-gray-600 dark:text-gray-400">{page.description}</p>
                   )}

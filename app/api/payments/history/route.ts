@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { normalizeAddress, isValidAddress } from '@/lib/wallet';
+import { parseArcChainId } from '@/lib/constants';
 
 /**
- * GET /api/payments/history?wallet=0x...
+ * GET /api/payments/history?wallet=0x...&chainId=5042
  * Get all payments made by a wallet address across all creators
  */
 export async function GET(request: NextRequest) {
@@ -19,11 +20,14 @@ export async function GET(request: NextRequest) {
     }
 
     const normalizedWallet = normalizeAddress(walletAddress);
+    // Optional: only payments on one Arc network
+    const chainId = parseArcChainId(searchParams.get('chainId'));
 
     // Get all payments made by this wallet
     const payments = await prisma.payment.findMany({
       where: {
         payerWallet: normalizedWallet,
+        ...(chainId !== null && { chainId }),
       },
       include: {
         item: {
@@ -52,6 +56,7 @@ export async function GET(request: NextRequest) {
     const purchaseHistory = payments.map((payment) => ({
       id: payment.id,
       txHash: payment.txHash,
+      chainId: payment.chainId,
       amount: payment.amount,
       createdAt: payment.createdAt.toISOString(),
       item: {

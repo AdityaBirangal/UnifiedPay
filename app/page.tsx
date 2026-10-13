@@ -214,7 +214,7 @@ export default function HomePage() {
 
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 text-center">
             <p className="text-lg text-blue-50 leading-relaxed max-w-4xl mx-auto">
-              <strong>Technical Implementation:</strong> UnifiedPay integrates Circle Gateway APIs to aggregate USDC balances across Ethereum, Polygon, Avalanche, and Base testnets. All payment settlements occur on Arc Network, establishing it as the primary liquidity hub for creator payments.
+              <strong>Technical Implementation:</strong> UnifiedPay integrates Circle Gateway APIs to aggregate USDC balances across Ethereum, Polygon, Avalanche, and Base. All payment settlements occur on Arc Network (mainnet by default, with a one-click switch to testnet), establishing it as the primary liquidity hub for creator payments.
             </p>
           </div>
         </div>
@@ -460,7 +460,7 @@ export default function HomePage() {
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3 text-blue-300">User Wallet (Any Chain)</h3>
                   <p className="text-gray-300 leading-relaxed mb-2">
-                    Customers hold USDC on <strong>Ethereum Sepolia</strong>, <strong>Polygon Amoy</strong>, <strong>Avalanche Fuji</strong>, or <strong>Base Sepolia</strong>
+                    Customers hold USDC on <strong>Ethereum</strong>, <strong>Polygon</strong>, <strong>Avalanche</strong>, or <strong>Base</strong>
                   </p>
                   <div className="text-sm text-gray-400 mt-2">
                     → Users pay from wherever their USDC already lives
@@ -982,7 +982,7 @@ export default function HomePage() {
               <div>
                 <h4 className="font-bold text-lg mb-3 text-blue-300">Arc Integration Points</h4>
                 <ul className="space-y-2 text-sm text-gray-300">
-                  <li>✓ <code className="bg-white/10 px-2 py-1 rounded">lib/chains.ts</code> — Arc Testnet configuration</li>
+                  <li>✓ <code className="bg-white/10 px-2 py-1 rounded">lib/chains.ts</code> — Arc Mainnet + Testnet configuration</li>
                   <li>✓ <code className="bg-white/10 px-2 py-1 rounded">lib/circle-gateway.ts</code> — Circle Gateway API client</li>
                   <li>✓ <code className="bg-white/10 px-2 py-1 rounded">app/api/balance/unified/route.ts</code> — Unified balance endpoint</li>
                   <li>✓ Arc Network as primary payment chain in production</li>
@@ -1000,7 +1000,7 @@ export default function HomePage() {
             </div>
             <div className="mt-8 pt-8 border-t border-gray-700 text-center">
               <p className="text-lg text-gray-200 leading-relaxed max-w-4xl mx-auto">
-                <strong>Production-Ready:</strong> UnifiedPay is deployed at <a href="https://unifiedpay.birangal.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">unifiedpay.birangal.com</a> with full Arc and ENS integration. All features are working and testable on Arc Testnet.
+                <strong>Production-Ready:</strong> UnifiedPay is deployed at <a href="https://unifiedpay.birangal.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">unifiedpay.birangal.com</a> with full Arc and ENS integration. Payments settle on Arc Mainnet by default; switch to Arc Testnet from the header to try it with test USDC.
               </p>
             </div>
           </div>

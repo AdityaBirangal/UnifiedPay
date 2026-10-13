@@ -77,9 +77,11 @@ export async function GET(
         id: page.id,
         title: page.title,
         description: page.description,
+        chainId: page.chainId,
         createdAt: page.createdAt,
         items: page.items.map((item) => ({
           id: item.id,
+          chainId: page.chainId,
           title: item.title,
           description: item.description,
           type: item.type,

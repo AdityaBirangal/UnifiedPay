@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractWalletFromBody, validateWalletAddress } from '@/lib/auth';
 import { createErrorResponse, validateString, sanitizeInput, AppError } from '@/lib/errors';
+import { PRIMARY_CHAIN_ID, parseArcChainId } from '@/lib/constants';
 
 /**
  * POST /api/pages
@@ -34,6 +35,12 @@ export async function POST(request: NextRequest) {
       throw new AppError('Description must be 2000 characters or less', 'VALIDATION_ERROR', 400);
     }
 
+    // Arc network the page accepts payments on (fixed once created)
+    const chainId = body.chainId === undefined ? PRIMARY_CHAIN_ID : parseArcChainId(body.chainId);
+    if (chainId === null) {
+      throw new AppError('Network must be Arc Mainnet or Arc Testnet', 'VALIDATION_ERROR', 400);
+    }
+
     // Verify user exists (create if doesn't exist)
     await prisma.user.upsert({
       where: { walletAddress: walletValidation.address },
@@ -49,6 +56,7 @@ export async function POST(request: NextRequest) {
         creatorWallet: walletValidation.address,
         title: sanitizedTitle,
         description: sanitizedDescription,
+        chainId,
       },
       include: {
         items: true,
@@ -61,6 +69,7 @@ export async function POST(request: NextRequest) {
         id: page.id,
         title: page.title,
         description: page.description,
+        chainId: page.chainId,
         createdAt: page.createdAt,
         itemCount: page.items.length,
       },
@@ -116,6 +125,7 @@ export async function GET(request: NextRequest) {
         id: page.id,
         title: page.title,
         description: page.description,
+        chainId: page.chainId,
         createdAt: page.createdAt,
         updatedAt: page.updatedAt,
         itemCount: page._count.items,

@@ -54,6 +54,7 @@ export async function GET(
         id: page.id,
         title: page.title,
         description: page.description,
+        chainId: page.chainId,
         createdAt: page.createdAt,
         updatedAt: page.updatedAt,
         items: page.items.map((item) => ({
