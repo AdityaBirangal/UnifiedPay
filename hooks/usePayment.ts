@@ -103,24 +103,42 @@ export function usePayment() {
 
       const txHash = receipt.transactionHash;
 
-      // Record payment in database
-      const paymentResponse = await fetch('/api/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          walletAddress: account.address,
-          itemId,
-          amount: amountWei.toString(), // Store as wei string in database
-          txHash,
-          chainId: payChain.id,
-        }),
-      });
+      // Record payment in database. The server verifies the tx on-chain and answers 202 while it
+      // can't see it yet (its RPC may lag, or confirmation may be slow), so keep retrying.
+      const recordPayment = () =>
+        fetch('/api/payments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            walletAddress: account.address,
+            itemId,
+            amount: amountWei.toString(), // Store as wei string in database
+            txHash,
+            chainId: payChain.id,
+          }),
+        });
+
+      const RECORD_TIMEOUT_MS = 2 * 60 * 1000;
+      const RECORD_RETRY_DELAY_MS = 3000;
+      const recordStartedAt = Date.now();
+      let paymentResponse = await recordPayment();
+      while (paymentResponse.status === 202 && Date.now() - recordStartedAt < RECORD_TIMEOUT_MS) {
+        await new Promise((resolve) => setTimeout(resolve, RECORD_RETRY_DELAY_MS));
+        paymentResponse = await recordPayment();
+      }
+
+      if (paymentResponse.status === 202) {
+        throw new Error(
+          `Payment sent but not confirmed on-chain within 2 minutes, so it wasn't recorded yet. Keep your transaction hash (${txHash}) and share it with the creator.`
+        );
+      }
 
       const paymentData = await paymentResponse.json();
 
-      if (!paymentResponse.ok) {
+      // 409 = already recorded (e.g. an earlier retry succeeded) - treat as success
+      if (!paymentResponse.ok && paymentResponse.status !== 409) {
         // Payment was sent but recording failed - this is a problem
         console.error('Payment sent but recording failed:', paymentData);
         throw new Error(paymentData.error || 'Payment sent but failed to record');

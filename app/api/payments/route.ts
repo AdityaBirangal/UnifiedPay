@@ -6,14 +6,15 @@ import { PRIMARY_CHAIN_ID, CHAIN_NAMES, TOKEN_DECIMALS, parseArcChainId } from '
 import { parseTokenAmount } from '@/lib/blockchain';
 import { verifyPayment } from '@/lib/payment-verifier';
 
-// The server's RPC can lag a few seconds behind the wallet's, so retry while the tx isn't visible yet
+// The server's RPC can lag behind the wallet's. Retry briefly here (kept short to stay within
+// serverless timeouts); if the tx still isn't visible we answer 202 and the client retries.
 async function verifyPaymentWithRetry(
   ...args: Parameters<typeof verifyPayment>
 ): ReturnType<typeof verifyPayment> {
-  const MAX_ATTEMPTS = 4;
+  const MAX_ATTEMPTS = 3;
   let result = await verifyPayment(...args);
   for (let attempt = 1; attempt < MAX_ATTEMPTS && result.error === 'Transaction not found'; attempt++) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
     result = await verifyPayment(...args);
   }
   return result;
@@ -118,6 +119,14 @@ export async function POST(request: NextRequest) {
       expectedAmountWei,
       chainId
     );
+
+    // Not visible on-chain yet - tell the client to try again shortly
+    if (verification.error === 'Transaction not found') {
+      return NextResponse.json(
+        { pending: true, error: 'Transaction not confirmed on-chain yet, retry shortly' },
+        { status: 202 }
+      );
+    }
 
     if (!verification.isValid) {
       return NextResponse.json(
