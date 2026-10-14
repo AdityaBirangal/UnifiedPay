@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { ConnectButton, useActiveAccount, useActiveWalletChain, useSwitchActiveWalletChain } from 'thirdweb/react';
 import { createThirdwebClient } from 'thirdweb';
 import { createWallet, inAppWallet } from 'thirdweb/wallets';
-import { TOKEN_SYMBOL } from '@/lib/constants';
+import { TOKEN_SYMBOL, formatUsdcDisplay } from '@/lib/constants';
 import { shortenAddress } from '@/lib/wallet';
 import { ARC_MAINNET, ARC_TESTNET } from '@/lib/chains';
 import { useNetwork } from '@/components/providers/NetworkProvider';
@@ -29,6 +29,8 @@ export default function ConnectWallet() {
   
   // ENS Integration: Get ENS name and avatar for connected wallet
   const { ensName, avatar, loading: ensLoading } = useENSProfile(account?.address);
+  // Only count chains that actually hold USDC
+  const fundedChains = unifiedBalance?.byChain.filter((entry) => BigInt(entry.balanceRaw) > BigInt(0)).length ?? 0;
 
   const client = useMemo(() => {
     if (!clientId) {
@@ -114,11 +116,11 @@ export default function ConnectWallet() {
                   ) : unifiedBalance ? (
                     <>
                       <span className="font-semibold">
-                        {parseFloat(unifiedBalance.total).toFixed(2)} {TOKEN_SYMBOL}
+                        {formatUsdcDisplay(unifiedBalance.total)} {TOKEN_SYMBOL}
                       </span>
-                      {unifiedBalance.byChain.length > 1 && (
+                      {fundedChains > 1 && (
                         <span className="text-xs opacity-70">
-                          (across {unifiedBalance.byChain.length} chains)
+                          (across {fundedChains} chains)
                         </span>
                       )}
                     </>

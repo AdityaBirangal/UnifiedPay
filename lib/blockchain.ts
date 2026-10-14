@@ -10,21 +10,26 @@ export const ERC20_ABI = [
   'event Transfer(address indexed from, address indexed to, uint256 value)',
 ] as const;
 
+// Treat unset or placeholder values (e.g. ".../v2/YOUR_ALCHEMY_API_KEY" copied from .env.example) as missing
+function envRpc(value: string | undefined): string | undefined {
+  return value && !value.includes('YOUR_') ? value : undefined;
+}
+
 // RPC URLs by chain. NEXT_PUBLIC_* vars must be referenced literally so Next.js can inline them.
 // Arc falls back to its public RPC; other chains are optional (only used for the unified balance).
 const RPC_URLS: Record<number, string | undefined> = {
   // Mainnets
-  [SUPPORTED_CHAINS.ARC_MAINNET]: process.env.NEXT_PUBLIC_RPC_URL_ARC_MAINNET || 'https://rpc.mainnet.arc.io',
-  [SUPPORTED_CHAINS.ETHEREUM_MAINNET]: process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET,
-  [SUPPORTED_CHAINS.POLYGON_MAINNET]: process.env.NEXT_PUBLIC_RPC_URL_POLYGON_MAINNET,
-  [SUPPORTED_CHAINS.AVALANCHE_MAINNET]: process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_MAINNET,
-  [SUPPORTED_CHAINS.BASE_MAINNET]: process.env.NEXT_PUBLIC_RPC_URL_BASE_MAINNET,
+  [SUPPORTED_CHAINS.ARC_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ARC_MAINNET) || 'https://rpc.mainnet.arc.io',
+  [SUPPORTED_CHAINS.ETHEREUM_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET),
+  [SUPPORTED_CHAINS.POLYGON_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_POLYGON_MAINNET),
+  [SUPPORTED_CHAINS.AVALANCHE_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_MAINNET),
+  [SUPPORTED_CHAINS.BASE_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_BASE_MAINNET),
   // Testnets
-  [SUPPORTED_CHAINS.ARC_TESTNET]: process.env.NEXT_PUBLIC_RPC_URL_ARC_TESTNET || 'https://rpc.testnet.arc.io',
-  [SUPPORTED_CHAINS.ETHEREUM_SEPOLIA]: process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA,
-  [SUPPORTED_CHAINS.POLYGON_AMOY]: process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY,
-  [SUPPORTED_CHAINS.AVALANCHE_FUJI]: process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI,
-  [SUPPORTED_CHAINS.BASE_SEPOLIA]: process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA,
+  [SUPPORTED_CHAINS.ARC_TESTNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ARC_TESTNET) || 'https://rpc.testnet.arc.io',
+  [SUPPORTED_CHAINS.ETHEREUM_SEPOLIA]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA),
+  [SUPPORTED_CHAINS.POLYGON_AMOY]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY),
+  [SUPPORTED_CHAINS.AVALANCHE_FUJI]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI),
+  [SUPPORTED_CHAINS.BASE_SEPOLIA]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA),
 };
 
 // Get USDC token address for a specific chain

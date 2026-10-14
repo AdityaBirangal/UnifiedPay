@@ -10,7 +10,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { shortenAddress } from '@/lib/wallet';
 import { usePayment } from '@/hooks/usePayment';
 import { useUnifiedBalance } from '@/hooks/useUnifiedBalance';
-import { getExplorerTxUrl, getNetworkForArcChainId, TOKEN_SYMBOL } from '@/lib/constants';
+import { getExplorerTxUrl, getNetworkForArcChainId, formatUsdcDisplay, TOKEN_SYMBOL } from '@/lib/constants';
 import NetworkBadge from '@/components/ui/NetworkBadge';
 import { useNetwork } from '@/components/providers/NetworkProvider';
 import { useToast } from '@/components/ui/ToastProvider';
@@ -505,7 +505,7 @@ export default function PublicPaymentPage() {
                         <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-2">Your USDC Balance</p>
                         <div className="flex items-baseline gap-2">
                           <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-                            {parseFloat(unifiedBalance.total).toFixed(2)} {TOKEN_SYMBOL}
+                            {formatUsdcDisplay(unifiedBalance.total)} {TOKEN_SYMBOL}
                           </p>
                           {unifiedBalance.byChain.length > 1 && (
                             <p className="text-xs text-blue-600 dark:text-blue-400">
@@ -518,10 +518,10 @@ export default function PublicPaymentPage() {
                             <p className="text-xs text-blue-600 dark:text-blue-400 mb-1">By Chain:</p>
                             <div className="space-y-1">
                               {unifiedBalance.byChain.map((chain) => (
-                                <div key={chain.chainId} className="flex justify-between text-xs">
+                                <div key={chain.chainName} className="flex justify-between text-xs">
                                   <span className="text-blue-700 dark:text-blue-300">{chain.chainName}:</span>
                                   <span className="font-semibold text-blue-900 dark:text-blue-100">
-                                    {parseFloat(chain.balance).toFixed(2)} {TOKEN_SYMBOL}
+                                    {formatUsdcDisplay(chain.balance)} {TOKEN_SYMBOL}
                                   </span>
                                 </div>
                               ))}

@@ -95,6 +95,14 @@ export const TOKEN_SYMBOL = 'USDC'; // USDC stablecoin
 export const TOKEN_DECIMALS = 6; // USDC ERC-20 interface uses 6 decimals (native gas USDC on Arc uses 18)
 
 
+// Display a USDC amount: 2 decimals normally, but keep small amounts (e.g. 0.001) visible
+export function formatUsdcDisplay(amount: string | number): string {
+  const value = typeof amount === 'number' ? amount : parseFloat(amount);
+  if (!isFinite(value) || value === 0) return '0.00';
+  if (Math.abs(value) >= 0.01) return value.toFixed(2);
+  return parseFloat(value.toFixed(6)).toString();
+}
+
 // App configuration
 export const APP_NAME = 'UnifiedPay';
 export const APP_DESCRIPTION = 'The easiest way to accept USDC payments on Arc Network';
