@@ -68,6 +68,18 @@ export function validateNumber(value: unknown, fieldName: string, min: number = 
   return num;
 }
 
+// USDC amount: positive, plain decimal, at most 6 decimal places (USDC's precision)
+export function validateUsdcAmount(value: unknown, fieldName: string = 'Price'): string {
+  const amount = typeof value === 'number' ? value.toString() : typeof value === 'string' ? value.trim() : '';
+  if (!/^\d+(\.\d{1,6})?$/.test(amount)) {
+    throw new AppError(`${fieldName} must be a number with at most 6 decimal places`, 'VALIDATION_ERROR', 400);
+  }
+  if (parseFloat(amount) <= 0) {
+    throw new AppError(`${fieldName} must be greater than 0`, 'VALIDATION_ERROR', 400);
+  }
+  return amount;
+}
+
 export function sanitizeInput(input: string): string {
   // Remove potentially dangerous characters
   return input

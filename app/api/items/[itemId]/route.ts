@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { validateUsdcAmount } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
 import { validateWalletAddress, extractWalletFromBody } from '@/lib/auth';
 
@@ -131,10 +132,11 @@ export async function PATCH(
           { status: 400 }
         );
       }
-      const priceNum = parseFloat(finalPrice);
-      if (isNaN(priceNum) || priceNum <= 0) {
+      try {
+        validateUsdcAmount(finalPrice);
+      } catch (err) {
         return NextResponse.json(
-          { error: 'Price must be a positive number' },
+          { error: err instanceof Error ? err.message : 'Invalid price' },
           { status: 400 }
         );
       }
@@ -147,7 +149,7 @@ export async function PATCH(
         ...(title && { title: title.trim() }),
         ...(description !== undefined && { description: description?.trim() || null }),
         ...(type && { type: type }),
-        ...(finalType === 'fixed' && priceUsdc !== undefined && { priceUsdc: priceUsdc.trim() }),
+        ...(finalType === 'fixed' && priceUsdc !== undefined && { priceUsdc: validateUsdcAmount(priceUsdc) }),
         ...(finalType === 'open' && { priceUsdc: null }),
         ...(contentUrl !== undefined && { contentUrl: contentUrl?.trim() || null }),
       },

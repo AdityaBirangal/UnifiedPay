@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { extractWalletFromBody } from '@/lib/auth';
-import { createErrorResponse, validateString, validateNumber, sanitizeInput, sanitizeUrl, AppError } from '@/lib/errors';
+import { createErrorResponse, validateString, sanitizeInput, sanitizeUrl, AppError, validateUsdcAmount } from '@/lib/errors';
 
 /**
  * POST /api/items
@@ -64,8 +64,7 @@ export async function POST(request: NextRequest) {
       if (!priceUsdc || typeof priceUsdc !== 'string' || priceUsdc.trim().length === 0) {
         throw new AppError('Price is required for fixed payment items', 'VALIDATION_ERROR', 400);
       }
-      const priceNum = validateNumber(priceUsdc, 'Price', 0);
-      sanitizedPrice = priceNum.toString();
+      sanitizedPrice = validateUsdcAmount(priceUsdc);
     }
 
     // Validate and sanitize content URL if provided

@@ -465,8 +465,8 @@ export default function PublicPaymentPage() {
                         <div className="relative">
                         <input
                           type="number"
-                          step="0.01"
-                          min="0"
+                          step="0.000001"
+                          min="0.000001"
                           value={customAmount}
                           onChange={(e) => setCustomAmount(e.target.value)}
                             className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 text-lg font-semibold"

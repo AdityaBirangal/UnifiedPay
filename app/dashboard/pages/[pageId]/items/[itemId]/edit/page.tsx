@@ -207,8 +207,8 @@ export default function EditPaymentItem() {
                       type="number"
                       id="priceUsdc"
                       required
-                      step="0.01"
-                      min="0"
+                      step="0.000001"
+                      min="0.000001"
                       value={formData.priceUsdc}
                       onChange={(e) => setFormData({ ...formData, priceUsdc: e.target.value })}
                       className="w-full px-4 py-3 pr-16 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-gray-100 transition-colors"

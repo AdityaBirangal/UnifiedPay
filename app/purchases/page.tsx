@@ -183,13 +183,13 @@ export default function PurchasesPage() {
                   </div>
                   <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">Total Spent</p>
                   <p className="text-2xl font-bold text-green-900 dark:text-green-100">
-                    {data.purchases.reduce((sum, p) => {
+                    {formatTokenAmount(data.purchases.reduce((sum, p) => {
                       try {
-                        return sum + parseFloat(formatTokenAmount(BigInt(p.amount), 6));
+                        return sum + BigInt(p.amount); // Exact sum in USDC base units (6 decimals)
                       } catch {
                         return sum;
                       }
-                    }, 0).toFixed(2)} <span className="text-base text-green-700 dark:text-green-300">USDC</span>
+                    }, BigInt(0)), 6)} <span className="text-base text-green-700 dark:text-green-300">USDC</span>
                   </p>
                 </div>
               </div>
