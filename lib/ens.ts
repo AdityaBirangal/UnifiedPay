@@ -33,12 +33,6 @@ const avatarCache = new Map<string, ENSAvatarCacheEntry>();
 // Cache TTL: 5 minutes
 const CACHE_TTL = 5 * 60 * 1000;
 
-// Public fallback RPCs for ENS lookups when no RPC URL is configured
-const ENS_FALLBACK_RPC: Record<ArcNetwork, string> = {
-  mainnet: 'https://ethereum-rpc.publicnode.com',
-  testnet: 'https://ethereum-sepolia-rpc.publicnode.com',
-};
-
 const ensProviders = new Map<ArcNetwork, ethers.JsonRpcProvider>();
 
 /**
@@ -50,8 +44,8 @@ export function getENSProvider(network: ArcNetwork = DEFAULT_NETWORK): ethers.Js
     return existing;
   }
 
-  const rpcUrl = getRpcUrl(NETWORKS[network].ensChainId) || ENS_FALLBACK_RPC[network];
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  const ensChainId = NETWORKS[network].ensChainId;
+  const provider = new ethers.JsonRpcProvider(getRpcUrl(ensChainId)!, ensChainId, { staticNetwork: true });
   ensProviders.set(network, provider);
   return provider;
 }

@@ -16,20 +16,20 @@ function envRpc(value: string | undefined): string | undefined {
 }
 
 // RPC URLs by chain. NEXT_PUBLIC_* vars must be referenced literally so Next.js can inline them.
-// Arc falls back to its public RPC; other chains are optional (only used for the unified balance).
-const RPC_URLS: Record<number, string | undefined> = {
+// Every chain falls back to a free public RPC (no API key); set the env var to use your own provider.
+const RPC_URLS: Record<number, string> = {
   // Mainnets
   [SUPPORTED_CHAINS.ARC_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ARC_MAINNET) || 'https://rpc.mainnet.arc.io',
-  [SUPPORTED_CHAINS.ETHEREUM_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET),
-  [SUPPORTED_CHAINS.POLYGON_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_POLYGON_MAINNET),
-  [SUPPORTED_CHAINS.AVALANCHE_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_MAINNET),
-  [SUPPORTED_CHAINS.BASE_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_BASE_MAINNET),
+  [SUPPORTED_CHAINS.ETHEREUM_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET) || 'https://eth.drpc.org',
+  [SUPPORTED_CHAINS.POLYGON_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_POLYGON_MAINNET) || 'https://polygon.drpc.org',
+  [SUPPORTED_CHAINS.AVALANCHE_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_MAINNET) || 'https://avalanche-c-chain-rpc.publicnode.com',
+  [SUPPORTED_CHAINS.BASE_MAINNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_BASE_MAINNET) || 'https://base-rpc.publicnode.com',
   // Testnets
   [SUPPORTED_CHAINS.ARC_TESTNET]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ARC_TESTNET) || 'https://rpc.testnet.arc.io',
-  [SUPPORTED_CHAINS.ETHEREUM_SEPOLIA]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA),
-  [SUPPORTED_CHAINS.POLYGON_AMOY]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY),
-  [SUPPORTED_CHAINS.AVALANCHE_FUJI]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI),
-  [SUPPORTED_CHAINS.BASE_SEPOLIA]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA),
+  [SUPPORTED_CHAINS.ETHEREUM_SEPOLIA]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA) || 'https://ethereum-sepolia-rpc.publicnode.com',
+  [SUPPORTED_CHAINS.POLYGON_AMOY]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY) || 'https://polygon-amoy-bor-rpc.publicnode.com',
+  [SUPPORTED_CHAINS.AVALANCHE_FUJI]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI) || 'https://avalanche-fuji-c-chain-rpc.publicnode.com',
+  [SUPPORTED_CHAINS.BASE_SEPOLIA]: envRpc(process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA) || 'https://base-sepolia-rpc.publicnode.com',
 };
 
 // Get USDC token address for a specific chain
@@ -73,7 +73,8 @@ export const getProvider = (chainId?: number): ethers.JsonRpcProvider => {
     throw new Error(`RPC URL not configured for chain ID ${targetChainId}`);
   }
   
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  // Static network: skip chain-ID detection, which ethers retries forever if a public RPC is down
+  const provider = new ethers.JsonRpcProvider(rpcUrl, targetChainId, { staticNetwork: true });
   providerCache.set(targetChainId, provider);
   return provider;
 };

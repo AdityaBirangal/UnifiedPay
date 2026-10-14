@@ -217,9 +217,7 @@ export function getCircleGatewayConfig(network: ArcNetwork = DEFAULT_NETWORK): C
 }
 
 /**
- * Fallback: Get USDC balance directly from chains if Circle Gateway is unavailable
- * This can be used as a backup when Circle Gateway API is down or not configured
- * Only queries chains that have RPC URLs configured
+ * Get the wallet's on-chain USDC balance on each chain (in parallel)
  */
 export async function getDirectChainBalances(
   walletAddress: string,
@@ -228,35 +226,33 @@ export async function getDirectChainBalances(
   const { getTokenContract, formatTokenAmount, hasRpcUrl } = await import('./blockchain');
   const { TOKEN_DECIMALS } = await import('./constants');
   
-  const byChain: UnifiedBalance['byChain'] = [];
-  let total = BigInt(0);
+  // Query all chains in parallel; a slow or failing public RPC only drops that chain
+  const BALANCE_TIMEOUT_MS = 8000;
+  const results = await Promise.all(
+    chainIds.filter((chainId) => hasRpcUrl(chainId)).map(async (chainId) => {
+      try {
+        const contract = getTokenContract(chainId);
+        const balance: bigint = await Promise.race([
+          contract.balanceOf(walletAddress),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`Timed out after ${BALANCE_TIMEOUT_MS}ms`)), BALANCE_TIMEOUT_MS)
+          ),
+        ]);
+        return {
+          chainId,
+          chainName: getChainName(chainId),
+          balance: formatTokenAmount(balance, TOKEN_DECIMALS),
+          balanceRaw: balance.toString(),
+        };
+      } catch (error) {
+        console.error(`Error fetching balance for chain ${chainId}:`, error instanceof Error ? error.message : error);
+        return null;
+      }
+    })
+  );
 
-  for (const chainId of chainIds) {
-    // Skip chains that don't have RPC URLs configured
-    if (!hasRpcUrl(chainId)) {
-      console.log(`Skipping chain ${chainId} - RPC URL not configured`);
-      continue;
-    }
-
-    try {
-      const contract = getTokenContract(chainId);
-      const balance = await contract.balanceOf(walletAddress);
-      const balanceRaw = balance.toString();
-      const balanceFormatted = formatTokenAmount(balance, TOKEN_DECIMALS);
-      
-      total += balance;
-      
-      byChain.push({
-        chainId,
-        chainName: getChainName(chainId),
-        balance: balanceFormatted,
-        balanceRaw,
-      });
-    } catch (error) {
-      console.error(`Error fetching balance for chain ${chainId}:`, error);
-      // Continue with other chains
-    }
-  }
+  const byChain = results.filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+  const total = byChain.reduce((sum, entry) => sum + BigInt(entry.balanceRaw), BigInt(0));
 
   return {
     total: formatTokenAmount(total, TOKEN_DECIMALS),
