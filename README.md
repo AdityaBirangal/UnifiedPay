@@ -17,9 +17,11 @@
 
 **UnifiedPay treats all USDC across chains as one unified liquidity surface.**
 
-UnifiedPay enables creators to accept USDC payments on **Arc Network** as the primary settlement layer, while giving users visibility into their **unified USDC balance across 15+ chains** via **Circle Gateway**. Payments are made to human-readable **ENS names** (`creator.eth`) instead of hex addresses, with dynamic ENS resolution at runtime.
+UnifiedPay enables creators to accept USDC payments on **Arc Network** as the settlement layer, while showing users a **unified USDC balance** across Arc, Ethereum, Polygon, Avalanche, and Base (plus any **Circle Gateway** deposits). Payments are made to human-readable **ENS names** (`creator.eth`) instead of hex addresses, with dynamic ENS resolution at runtime.
 
-The result: **A non-custodial payment experience where users pay on Arc, creators receive on Arc, and the complexity of multi-chain USDC management is abstracted away.**
+The result: **A non-custodial payment experience where users see all their USDC in one place, pay on Arc, and creators receive on Arc.**
+
+**🟢 Live on Arc Mainnet** at [unifiedpay.birangal.com](https://unifiedpay.birangal.com/) — payments settle on Arc Mainnet (chain ID `5042`) in USDC, with a one-click switch to Arc Testnet.
 
 ### The Problem
 
@@ -32,10 +34,10 @@ Traditional Web3 payment platforms fragment liquidity across chains. A creator m
 
 UnifiedPay uses:
 1. **Arc Network** as the single settlement and coordination layer
-2. **Circle Gateway** for unified USDC balance visibility across 15+ chains
+2. **A unified balance view** — on-chain USDC across chains plus Circle Gateway deposits
 3. **ENS** for human-readable payment identities
 
-Users see their total USDC across all chains, pay on Arc, and creators receive instantly on Arc — all without bridging, swapping, or managing multiple chain UIs.
+Users see their total USDC across chains in one view, pay in USDC on Arc, and creators receive instantly on Arc — one settlement chain, one payment UI.
 
 ---
 
@@ -43,71 +45,60 @@ Users see their total USDC across all chains, pay on Arc, and creators receive i
 
 **Arc serves as the coordination and settlement layer for UnifiedPay.**
 
-While users may hold USDC on Ethereum, Base, Arbitrum, or other chains (visible via Circle Gateway), **all payments settle on Arc**. This design:
+While users may hold USDC on Ethereum, Polygon, Avalanche, or Base (shown in their unified balance), **all payments settle on Arc**. This design:
 
 - ✅ **Avoids fragmenting liquidity** — One settlement layer, not N chains
 - ✅ **Provides fast, low-cost settlement** — Creators receive payments instantly
 - ✅ **Uses Arc as single source of truth** — Payment state lives on Arc
-- ✅ **Eliminates bridge UX** — No manual chain switching or asset transfers
+- ✅ **Verifiable** — Every payment is checked on Arc (recipient, amount, payer) before it's recorded
 
 Arc is not just "another chain" — it's the **unified settlement surface** for cross-chain USDC liquidity.
 
 ### Arc's Role in the Payment Flow
 
 ```
-1. User sees unified USDC balance (via Circle Gateway)
+1. User sees unified USDC balance (on-chain balances + Circle Gateway deposits)
 2. User pays with USDC on Arc Network
 3. Payment settles on Arc (coordination layer)
 4. Creator receives USDC on Arc (single chain, instant)
 ```
 
-By using Arc as the settlement layer, UnifiedPay demonstrates how **multiple chains can share one liquidity surface** without fragmenting user experience.
+By using Arc as the settlement layer, creators get **one place where all payments land**, instead of reconciling balances across chains.
 
 ---
 
-## 💰 Circle Gateway Integration
+## 💰 Unified USDC Balance
 
-**Circle Gateway provides unified USDC balance visibility.**
+**One view of a user's USDC across chains.**
 
-UnifiedPay integrates Circle Gateway's **balance aggregation API** to show users their total USDC across **15+ chains** in one unified view:
+For the selected network, UnifiedPay reads the wallet's on-chain USDC balance on each chain and adds any USDC the user has deposited into **Circle Gateway**:
 
-- Ethereum
-- Base
-- Arbitrum
-- Optimism
-- Polygon
-- Avalanche
-- Solana
-- Unichain
-- Sonic
-- World Chain
-- HyperEVM
-- Sei
-- **Arc Network**
-- ...and more
+| Mainnet | Testnet |
+|---|---|
+| Arc Mainnet | Arc Testnet |
+| Ethereum | Ethereum Sepolia |
+| Polygon | Polygon Amoy |
+| Avalanche | Avalanche Fuji |
+| Base | Base Sepolia |
 
-### What Circle Gateway Does (and Doesn't Do)
+### What it does (and doesn't do)
 
 ✅ **What it does:**
-- Aggregates USDC balances across all chains into one unified number
-- Provides real-time balance visibility via Circle's API
-- Helps users answer: *"Do I have enough USDC across my wallets to make this payment?"*
+- Shows one total USDC number, with a per-chain breakdown
+- Includes Circle Gateway deposits (Gateway's balances API reports USDC deposited into the Gateway Wallet, so it is added on top of wallet balances)
+- Helps users answer: *"Do I have enough USDC to make this payment?"*
 
 ❌ **What it doesn't do:**
-- Does NOT automatically bridge or swap assets
+- Does NOT bridge or swap assets — payments are made in USDC on Arc
 - Does NOT custody user funds
-- Does NOT execute cross-chain transfers
-
-**This is balance reconciliation, not bridging.** Users see their total USDC liquidity surface, then pay with USDC on Arc.
 
 ### Implementation Details
 
-- Uses Circle Gateway REST API (`/v1/balances`)
-- Read-only integration (no write operations)
-- Falls back to direct RPC queries if Circle Gateway is unavailable
-- Supports both testnet and mainnet environments
+- Direct `balanceOf` reads on each chain, in parallel, with a per-chain timeout
+- Free public RPCs by default; set `NEXT_PUBLIC_RPC_URL_*` to use your own provider
+- Circle Gateway REST API (`/v1/balances`), mainnet or testnet to match the selected network
 
-Code reference: `lib/circle-gateway.ts`
+Code reference: `app/api/balance/unified/route.ts`, `lib/circle-gateway.ts`
 
 ---
 
@@ -122,7 +113,7 @@ UnifiedPay runs on **Arc Mainnet by default**. A **Mainnet / Testnet** switch in
 | Explorer | [explorer.arc.io](https://explorer.arc.io) | [explorer.testnet.arc.io](https://explorer.testnet.arc.io) |
 | USDC (ERC-20, 6 decimals) | `0x3600000000000000000000000000000000000000` | `0x3600000000000000000000000000000000000000` |
 
-- **Each payment page is locked to one network.** Creators pick Arc Mainnet or Arc Testnet when creating a page; it only accepts payments on that chain, and only payments on that chain unlock its content (test USDC can't unlock a mainnet page). Existing pages created before this change are on Testnet.
+- **Each payment page is locked to one network.** Creators pick Arc Mainnet or Arc Testnet when creating a page; it only accepts payments on that chain, and only payments on that chain unlock its content (test USDC can't unlock a mainnet page). Pages created before network selection existed are on Testnet.
 - Buyers opening a page are switched to its network automatically.
 - Every payment stores the `chainId` it settled on and is always verified on that chain.
 - Dashboard and Purchases show only the selected network's payments, so mainnet and testnet totals never mix.
@@ -171,8 +162,6 @@ ENS is not cosmetic — it's the **identity layer** for payments:
 
 Code reference: `lib/ens.ts`
 
-**For detailed ENS implementation documentation**, see [ENS_INTEGRATION.md](./memory-bank/ENS_INTEGRATION.md)
-
 ---
 
 ## 🏗️ Architecture Overview
@@ -182,13 +171,13 @@ Code reference: `lib/ens.ts`
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  User Wallet                                                 │
-│  (USDC on multiple chains: Ethereum, Base, Arbitrum, etc.)  │
+│  (USDC on Arc, Ethereum, Polygon, Avalanche, Base)          │
 └─────────────────────┬───────────────────────────────────────┘
                       │
                       ▼
          ┌────────────────────────┐
-         │   Circle Gateway API   │
-         │  (Balance Aggregation) │
+         │    Unified Balance     │
+         │ (RPC + Circle Gateway) │
          └────────────┬───────────┘
                       │
                       ▼
@@ -215,7 +204,7 @@ Code reference: `lib/ens.ts`
 
 ### Key Components
 
-1. **Circle Gateway** — Read-only balance visibility across 15+ chains
+1. **Unified balance** — Read-only USDC view across chains (on-chain + Circle Gateway deposits)
 2. **Arc Network** — Settlement and coordination layer for payments
 3. **ENS** — Human-readable identity resolution
 4. **UnifiedPay** — Frontend + API that orchestrates all three
@@ -227,7 +216,7 @@ Code reference: `lib/ens.ts`
 - **Blockchain Interaction**: ethers.js
 - **Database**: PostgreSQL (Supabase) + Prisma ORM
 - **Payment Settlement**: Arc Network USDC contracts
-- **Balance Aggregation**: Circle Gateway REST API
+- **Balance Aggregation**: Direct RPC reads + Circle Gateway REST API
 - **Identity Resolution**: ENS via ethers.js (Ethereum mainnet, or Sepolia on Testnet)
 
 ---
@@ -241,10 +230,10 @@ Code reference: `lib/ens.ts`
   - Arc as primary coordination layer
   - Direct Arc Network RPC integration
 
-- **Circle Gateway Integration**
-  - Unified USDC balance across 15+ chains
-  - Real-time balance aggregation via Circle API
-  - Fallback to direct RPC queries
+- **Unified Balance**
+  - USDC across Arc, Ethereum, Polygon, Avalanche, and Base (or their testnets)
+  - Circle Gateway deposits added on top
+  - Free public RPCs by default
 
 - **ENS Integration**
   - Runtime ENS name resolution (forward + reverse)
@@ -255,17 +244,19 @@ Code reference: `lib/ens.ts`
 - **Payment Infrastructure**
   - Non-custodial direct wallet-to-wallet transfers
   - Zero platform fees (100% to creators)
-  - Automatic content unlocking after payment
+  - On-chain verification of every payment (recipient, amount, payer)
+  - Automatic content unlocking after verified payment
   - Payment history and analytics dashboard
 
 - **User Experience**
   - Single-page payment flow
-  - No chain switching required
+  - Arc Mainnet by default, one-click switch to Testnet
+  - Each payment page locked to one network
   - ENS-based identity throughout UI
 
 ### ❌ Not Implemented
 
-- **Automatic cross-chain bridging** — Users pay on Arc (no bridge UI)
+- **Cross-chain payments** — Balances on other chains are shown, but payments are made in USDC on Arc (no bridging)
 - **Token swaps** — USDC-only (no DEX integration)
 - **Custodial wallets** — Fully non-custodial (users control keys)
 - **Fiat on/off ramps** — Crypto-native only
@@ -279,11 +270,11 @@ Code reference: `lib/ens.ts`
 | Feature | Implementation |
 |---------|----------------|
 | **Uses Arc as coordination layer** | All payments settle on Arc; Arc is the single source of truth for payment state |
-| **Demonstrates multi-chain UX** | Circle Gateway shows balances across 15+ chains; users pay on Arc without chain switching |
+| **Unified balance UX** | Users see USDC across chains in one view, then pay in USDC on Arc |
 | **Shows Arc's unique value** | Arc enables "one liquidity surface" by serving as the settlement layer for cross-chain USDC |
 | **Technical implementation** | Direct Arc Network integration via RPC; USDC transfers on Arc; payment recording on Arc |
 
-**Why this matters for Arc**: UnifiedPay demonstrates how Arc can serve as a **coordination layer** that unifies fragmented multi-chain liquidity into one settlement surface.
+**Why this matters for Arc**: UnifiedPay shows Arc as the **settlement layer** for everyday USDC commerce — creators get paid on one chain, with fast, low-cost USDC transfers.
 
 ---
 
@@ -316,15 +307,15 @@ Code reference: `lib/ens.ts`
 
 ### Blockchain
 - **Arc Network** (settlement layer)
-- **Circle Gateway** (balance aggregation)
+- **Circle Gateway** (deposit balances)
 - **ENS** (Ethereum mainnet / Sepolia)
 - **ethers.js** (blockchain interaction)
 
 ### Database Schema
-- `users` — Wallet addresses of creators
-- `payment_pages` — Public payment pages
-- `payment_items` — Individual payment items
-- `payments` — Record of all payments
+- `unifiedpay_users` — Wallet addresses of creators
+- `unifiedpay_payment_pages` — Public payment pages (each locked to one Arc network via `chainId`)
+- `unifiedpay_payment_items` — Individual payment items
+- `unifiedpay_payments` — Record of all payments (with the `chainId` they settled on)
 
 ---
 
@@ -334,7 +325,6 @@ Code reference: `lib/ens.ts`
 
 - Node.js 18+
 - PostgreSQL database (Supabase recommended)
-- Arc Network RPC endpoint
 - Circle Gateway API key (optional)
 - thirdweb account for wallet connection
 
@@ -352,7 +342,7 @@ cp .env.example .env
 # IMPORTANT: Never commit .env to git - it contains sensitive keys!
 ```
 
-**Required environment variables:**
+**Environment variables** (only `DATABASE_URL` and `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` are required):
 ```bash
 # Database
 DATABASE_URL="postgresql://..."
@@ -415,7 +405,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser.
 
 - **Live Demo**: [https://unifiedpay.birangal.com/](https://unifiedpay.birangal.com/)
 - **GitHub Repository**: [https://github.com/AdityaBirangal/UnifiedPay](https://github.com/AdityaBirangal/UnifiedPay)
-- **ENS Implementation Docs**: [ENS_INTEGRATION.md](./memory-bank/ENS_INTEGRATION.md)
+- **Arc Docs**: [docs.arc.io](https://docs.arc.io/)
 
 ---
 

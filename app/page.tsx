@@ -58,14 +58,14 @@ export default function HomePage() {
                   Accept USDC Payments
                 </span>
                 <br />
-                <span className="text-gray-900 dark:text-gray-100">Across Any Chain</span>
+                <span className="text-gray-900 dark:text-gray-100">Settled on Arc</span>
               </h1>
             </div>
             <p className="text-xl md:text-2xl lg:text-3xl text-gray-700 dark:text-gray-200 mb-4 max-w-4xl mx-auto font-medium">
-              Pay from any chain. Settle with Arc's unified liquidity. <br />Send to human-readable names.
+              See your USDC across chains in one place. Pay and settle on Arc. <br />Send to human-readable names.
             </p>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
-              One seamless USDC experience across multiple networks. No KYC required.
+              Live on Arc Mainnet, with a one-click switch to Testnet. No KYC required.
             </p>
             <div className="flex flex-wrap justify-center gap-3 mb-10">
               <div className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-full shadow-sm">
@@ -89,7 +89,7 @@ export default function HomePage() {
             </div>
             <div className="mb-8">
               <a
-                href="https://arc.network/"
+                href="https://www.arc.io/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors"
@@ -158,7 +158,7 @@ export default function HomePage() {
                   <svg className="w-6 h-6 text-green-300 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span><strong>Users pay from Ethereum, Polygon, Avalanche, or Base</strong> — USDC lives where they already have it</span>
+                  <span><strong>See USDC on Ethereum, Polygon, Avalanche, and Base</strong> — alongside your Arc balance, in one view</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-green-300 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,13 +170,13 @@ export default function HomePage() {
                   <svg className="w-6 h-6 text-green-300 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span><strong>Balances unified via Circle Gateway</strong> — See total USDC across all chains in one view</span>
+                  <span><strong>Unified balance</strong> — On-chain USDC across chains, plus any Circle Gateway deposits</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-green-300 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  <span><strong>Chain complexity abstracted</strong> — Users see one unified USDC balance, not fragmented liquidity</span>
+                  <span><strong>Verified on-chain</strong> — Every payment is checked on Arc before it&apos;s recorded or unlocks content</span>
                 </li>
               </ul>
             </div>
@@ -197,7 +197,7 @@ export default function HomePage() {
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-300 rounded-full mt-2 flex-shrink-0"></div>
-                  <span><strong>For Customers:</strong> Pay from wherever your USDC lives — no forced bridging required</span>
+                  <span><strong>For Customers:</strong> See all your USDC in one place, then pay in USDC on Arc</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-300 rounded-full mt-2 flex-shrink-0"></div>
@@ -206,7 +206,7 @@ export default function HomePage() {
               </ul>
               <div className="mt-6 pt-6 border-t border-white/20">
                 <p className="text-sm text-blue-100 leading-relaxed">
-                  <strong>Capital Efficiency:</strong> No manual bridging. No fragmented liquidity. Arc acts as the hub while users maintain assets on their preferred chains.
+                  <strong>One settlement layer:</strong> Creators receive every payment on Arc, so there&apos;s no reconciling balances across chains.
                 </p>
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function HomePage() {
 
           <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 text-center">
             <p className="text-lg text-blue-50 leading-relaxed max-w-4xl mx-auto">
-              <strong>Technical Implementation:</strong> UnifiedPay integrates Circle Gateway APIs to aggregate USDC balances across Ethereum, Polygon, Avalanche, and Base. All payment settlements occur on Arc Network (mainnet by default, with a one-click switch to testnet), establishing it as the primary liquidity hub for creator payments.
+              <strong>Technical Implementation:</strong> UnifiedPay reads on-chain USDC balances on Arc, Ethereum, Polygon, Avalanche, and Base, and adds any Circle Gateway deposits. All payment settlements occur on Arc Network (mainnet by default, with a one-click switch to testnet), establishing it as the primary liquidity hub for creator payments.
             </p>
           </div>
         </div>
@@ -325,7 +325,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">Why Choose UnifiedPay?</h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Chain-abstracted payments powered by Arc and ENS — the future of Web3 commerce
+              USDC payments settled on Arc, with ENS names instead of hex addresses
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -361,7 +361,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Unified USDC Balance</h3>
               <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                See total USDC across Ethereum, Polygon, Avalanche, and Base in one view via Circle Gateway.
+                See total USDC across Arc, Ethereum, Polygon, Avalanche, and Base in one view, plus Circle Gateway deposits.
               </p>
             </div>
 
@@ -446,7 +446,7 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-6">Technical Architecture</h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              How Arc + ENS power chain-abstracted USDC payments
+              How Arc + ENS power USDC payments
             </p>
           </div>
 
@@ -458,12 +458,12 @@ export default function HomePage() {
                   1
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-3 text-blue-300">User Wallet (Any Chain)</h3>
+                  <h3 className="text-2xl font-bold mb-3 text-blue-300">User Wallet</h3>
                   <p className="text-gray-300 leading-relaxed mb-2">
                     Customers hold USDC on <strong>Ethereum</strong>, <strong>Polygon</strong>, <strong>Avalanche</strong>, or <strong>Base</strong>
                   </p>
                   <div className="text-sm text-gray-400 mt-2">
-                    → Users pay from wherever their USDC already lives
+                    → UnifiedPay shows these balances alongside the user&apos;s Arc balance
                   </div>
                 </div>
               </div>
@@ -478,11 +478,11 @@ export default function HomePage() {
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3 text-green-300">Circle Gateway (Balance Aggregation)</h3>
                   <p className="text-gray-300 leading-relaxed mb-2">
-                    <strong>Circle Gateway API</strong> aggregates USDC balances across all chains
+                    <strong>On-chain balances</strong> on each chain, plus <strong>Circle Gateway</strong> deposits
                   </p>
                   <div className="text-sm text-gray-400 mt-2">
-                    → Provides unified "total USDC" view<br/>
-                    → Read-only balance aggregation (no custody)
+                    → Provides one "total USDC" view<br/>
+                    → Read-only (no custody)
                   </div>
                 </div>
               </div>
@@ -537,7 +537,7 @@ export default function HomePage() {
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3 text-yellow-300">Backend Verification (Payment Monitoring)</h3>
                   <p className="text-gray-300 leading-relaxed mb-2">
-                    <strong>UnifiedPay backend monitors Arc Network for incoming payments</strong>
+                    <strong>UnifiedPay backend verifies every payment on Arc Network</strong>
                   </p>
                   <div className="text-sm text-gray-400 mt-2">
                     → Verifies transactions on-chain via ethers.js<br/>
@@ -552,7 +552,7 @@ export default function HomePage() {
           <div className="mt-12 text-center">
             <div className="inline-block bg-blue-500/10 border border-blue-500/30 rounded-xl px-8 py-6 max-w-4xl">
               <p className="text-lg text-gray-200 leading-relaxed">
-                <strong className="text-blue-300">Result:</strong> Users experience a unified USDC payment system that abstracts chain complexity while maintaining non-custodial control. Arc serves as the liquidity hub, and ENS provides human-readable identity.
+                <strong className="text-blue-300">Result:</strong> Users get one view of their USDC and a simple, non-custodial way to pay on Arc. Arc serves as the liquidity hub, and ENS provides human-readable identity.
               </p>
             </div>
           </div>
@@ -565,7 +565,7 @@ export default function HomePage() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4">How to Get Started</h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Create your payment page in minutes and start accepting payments across chains
+              Create your payment page in minutes and start accepting USDC on Arc
             </p>
           </div>
           
@@ -701,12 +701,12 @@ export default function HomePage() {
               USDC is the world&apos;s most trusted stablecoin. Built for instant, low-cost global payments on Arc Network.
             </p>
             <a
-              href="https://arc.network/"
+              href="https://www.arc.io/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
             >
-              Visit Arc.network
+              Visit arc.io
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -755,10 +755,10 @@ export default function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  Fully Regulated
+                  Fully Reserved
                 </h4>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  GENIUS Act compliant, licensed issuer, fully collateralized and transparent.
+                  Issued by Circle, fully reserved and redeemable 1:1 for US dollars.
                 </p>
               </div>
               <div className="p-5 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
@@ -839,7 +839,7 @@ export default function HomePage() {
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-6">Core Technology Integration</h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              UnifiedPay leverages Arc Network for chain abstraction and ENS for human-readable identity
+              UnifiedPay uses Arc Network for USDC settlement and ENS for human-readable identity
             </p>
           </div>
 
@@ -853,7 +853,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <h3 className="text-2xl font-bold">Arc Network Integration</h3>
-                    <p className="text-blue-100 text-sm">Chain Abstracted USDC Payments Using Arc as a Liquidity Hub</p>
+                    <p className="text-blue-100 text-sm">USDC Payments Settled on Arc</p>
                   </div>
                 </div>
               </div>
@@ -865,8 +865,8 @@ export default function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <strong className="text-gray-900 dark:text-gray-100">Multi-chain USDC as unified liquidity surface</strong>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Users can pay from Ethereum, Polygon, Avalanche, or Base</p>
+                      <strong className="text-gray-900 dark:text-gray-100">Unified USDC balance</strong>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">See USDC on Arc, Ethereum, Polygon, Avalanche, and Base in one view</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -884,7 +884,7 @@ export default function HomePage() {
                     </svg>
                     <div>
                       <strong className="text-gray-900 dark:text-gray-100">Circle Gateway integration</strong>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Unified USDC balance view across all supported chains</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Circle Gateway deposits are added to the on-chain balances</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -892,8 +892,8 @@ export default function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <strong className="text-gray-900 dark:text-gray-100">Chain complexity abstracted</strong>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Users don&apos;t need to know which chain they&apos;re on — Arc handles settlement</p>
+                      <strong className="text-gray-900 dark:text-gray-100">Mainnet and Testnet</strong>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Each payment page is locked to one Arc network; switch networks from the header</p>
                     </div>
                   </li>
                   <li className="flex items-start gap-3">
@@ -901,15 +901,15 @@ export default function HomePage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div>
-                      <strong className="text-gray-900 dark:text-gray-100">Capital-efficient payments</strong>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">No forced bridging required — pay from wherever USDC lives</p>
+                      <strong className="text-gray-900 dark:text-gray-100">On-chain payment verification</strong>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Recipient, amount, and payer are verified on Arc before content unlocks</p>
                     </div>
                   </li>
                 </ul>
               </div>
             </div>
 
-            {/* ENS Prize */}
+            {/* ENS Integration */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border-4 border-purple-400 dark:border-purple-600 overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-6">
                 <div className="flex items-center gap-3 mb-2">
@@ -1066,8 +1066,8 @@ export default function HomePage() {
                 A non-custodial payment platform for accepting USDC payments on Arc Network. Built for creators, sellers, and business owners.
               </p>
               <div className="space-y-2 text-sm">
-                <a href="https://arc.network/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors font-medium">
-                  <span>Arc.network</span>
+                <a href="https://www.arc.io/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors font-medium">
+                  <span>arc.io</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -1086,7 +1086,7 @@ export default function HomePage() {
                   </a>
                 </li>
                 <li>
-                  <a href="http://unifiedpay.birangal.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors">
+                  <a href="https://unifiedpay.birangal.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-blue-400 hover:text-blue-300 transition-colors">
                     <span>Live Demo</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
